@@ -143,13 +143,14 @@ C:\Drive2023\UNAL_Docente\SemilleroAnalisisEconometrico\   ← Google Drive
 │       ├── Cancelaciones\
 │       ├── Egresados\
 │       └── Retirados_desde_2009.xlsx
-├── DatosProcesados\
-│   └── ProcesadosMarcos\                       ← inherited from prior project
-└── DatosArmonizados\                           ← outputs of this project
-    ├── keys\                                   ← confidential crosswalks
-    ├── panel\                                  ← main harmonized panels
-    ├── muestras\                               ← samples
-    └── outputs\                               ← tables and figures
+├── HeredadoMarcos\                             ← inherited from prior project
+│   └── ProcesadosMarcos\
+├── DatosArmonizados\                           ← intermediate harmonized files
+│   ├── keys\                                   ← confidential crosswalks (never to GitHub)
+│   ├── panel\                                  ← harmonized panels by source
+│   ├── muestras\                               ← samples
+│   └── outputs\                               ← tables and figures
+└── FinalWorkingDataSets\                       ← final analysis-ready databases
 ```
 
 ---

@@ -60,7 +60,7 @@ version 17
 * ── Rutas del proyecto ─────────────────────────────────────────────────────
 global dir_originales "C:/Drive2023/UNAL_Docente/SemilleroAnalisisEconometrico/DatosOriginales/Registro_FCE_2025/Matriculado"
 global dir_keys       "C:/Drive2023/UNAL_Docente/SemilleroAnalisisEconometrico/DatosArmonizados/keys"
-global dir_logs       "C:/Drive2023/UNAL_Docente/SemilleroAnalisisEconometrico/DatosProcesados/ProcesadosMarcos/logs"
+global dir_logs       "C:/Drive2023/UNAL_Docente/SemilleroAnalisisEconometrico/HeredadoMarcos/ProcesadosMarcos/logs"
 
 * ── Marca de tiempo ────────────────────────────────────────────────────────
 local fecha_hoy = c(current_date)

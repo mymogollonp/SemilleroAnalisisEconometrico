@@ -19,7 +19,7 @@
 | Retirados | `.xlsx` | Desde 2009 |
 | Rendimiento Matemáticas Básicas | `.xlsx` | 2016–2025, Ciencias e Ingeniería |
 
-**Datos procesados heredados (`DatosProcesados/ProcesadosMarcos/`):**
+**Datos procesados heredados (`HeredadoMarcos/ProcesadosMarcos/`):**
 - `BASE_DATOS_REGISTRO_UNAL_BOGOTA_con_id` — panel académico con `id_unal` anónimo (65 variables, panel largo student×period)
 - Llave de anonimización, diccionario, muestra 5%
 
@@ -47,58 +47,79 @@
 
 ---
 
-## Fase 1 — Inventario y Perfilado
+## Fase 1 — Anonimización de Matriculados
 
-**Do-file:** `code/01_inventario_datos.do`
+**Objetivo:** este es el primer paso sustantivo del proyecto. `Matriculados` es el archivo de partida porque define el universo completo de estudiantes. Antes de cualquier limpieza o cruce, se construye la llave de anonimización a partir de esta fuente y se genera una carpeta de trabajo desidentificada.
+
+**Do-file:** `1_LimpiezaDatos/01_anonimizar_matriculados.do`
+**Salidas:**
+- `DatosArmonizados/keys/LLAVE_ID_UNAL.dta` — crosswalk confidencial: ID real ↔ `id_unal`
+- `DatosArmonizados/keys/LLAVE_ID_UNAL.csv` — misma llave en CSV
+- `DatosArmonizados/panel/MATRICULADOS_anonimizados.dta` — base de trabajo sin identificadores personales
+
+### Pasos
+
+1. **Identificar el campo de ID personal** en `Matriculados_2009-1S` y `Matriculados_2023-2S` (correo UNAL, cédula, o código estudiantil)
+2. **Construir el universo único de estudiantes** — consolidar todos los IDs reales que aparecen en ambos archivos, sin duplicados
+3. **Generar `id_unal`** — permutación aleatoria con semilla documentada, formato `UNAL000001`
+   - Evaluar superposición con la llave heredada de `BASE_DATOS_REGISTRO_UNAL_BOGOTA` (semilla `20260223`)
+   - Si hay estudiantes nuevos: extender la llave con semilla nueva documentada
+4. **Guardar crosswalk** en `DatosArmonizados/keys/` — confidencial, nunca a GitHub
+5. **Reemplazar ID real por `id_unal`** en el archivo de trabajo y eliminar todas las columnas con datos personales (nombre, correo, cédula, fecha de nacimiento)
+6. **Verificar** que ningún identificador personal residual quede en el archivo de salida
+
+### Regla de oro
+> Una vez completada esta fase, ningún archivo fuera de `DatosArmonizados/keys/` contiene identificadores personales. Todo el trabajo posterior opera exclusivamente sobre `id_unal`.
+
+---
+
+## Fase 2 — Inventario y Perfilado
+
+**Do-file:** `1_LimpiezaDatos/02_inventario_datos.do`
 **Salidas:** `logs/session_YYYY-MM-DD.md`, `docs/fuentes_datos.md`
 
-Para cada dataset crudo:
+Para cada dataset crudo (ya con `id_unal` como identificador de entrada):
 - Variables disponibles, tipos, rangos
 - Tasa de missings por variable
 - Número de observaciones y períodos cubiertos
-- Identificadores candidatos (¿correo UNAL? ¿cédula? ¿código estudiantil?)
 - Consistencia entre versiones `.xlsx` y `.csv` del mismo dataset
 
 ---
 
-## Fase 2 — Limpieza por Dataset
+## Fase 3 — Limpieza por Dataset
 
-Un do-file por fuente. Cada uno produce un archivo `*_limpio.dta` en `DatosArmonizados/panel/`.
+Un do-file por fuente en `1_LimpiezaDatos/`. Cada uno produce un archivo `*_limpio.dta` en `DatosArmonizados/panel/`.
 **Regla:** nunca modificar el archivo original.
 
 | Do-file | Tarea central |
 |---|---|
-| `02_limpiar_matriculados.do` | Estandarizar variables de programa, período, estrato, PBM; detectar duplicados |
-| `03_limpiar_cursadas.do` | Estandarizar código de asignatura, calificación, créditos; verificar escala 0–5 |
-| `04_limpiar_cancelaciones.do` | Fecha de cancelación → período `YYYY-NS`; cruce con matriculados |
-| `05_limpiar_egresados.do` | Fecha de grado → período; cruce con matriculados para validar |
-| `06_limpiar_retirados.do` | Período de retiro; tipo de retiro; cruce con estados académicos |
-| `07_limpiar_rendimiento_mat.do` | Determinar granularidad; armonizar con período `YYYY-NS` |
+| `03_limpiar_matriculados.do` | Estandarizar variables de programa, período, estrato, PBM; detectar duplicados |
+| `04_limpiar_cursadas.do` | Estandarizar código de asignatura, calificación, créditos; verificar escala 0–5 |
+| `05_limpiar_cancelaciones.do` | Fecha de cancelación → período `YYYY-NS`; cruce con matriculados |
+| `06_limpiar_egresados.do` | Fecha de grado → período; cruce con matriculados para validar |
+| `07_limpiar_retirados.do` | Período de retiro; tipo de retiro; cruce con estados académicos |
+| `08_limpiar_rendimiento_mat.do` | Determinar granularidad; armonizar con período `YYYY-NS` |
 
 ---
 
-## Fase 3 — Anonimización y Armonización de IDs
+## Fase 4 — Armonización de IDs y Períodos
 
-**Do-files:** `08_crear_llave_ids.do`, `09_armonizar_periodos.do`
+**Do-files:** `2_Armonizacion/09_armonizar_ids.do`, `2_Armonizacion/10_armonizar_periodos.do`
 
-### Anonimización (`08_crear_llave_ids.do`)
-- Identificar el campo de ID personal en cada dataset crudo
-- Evaluar superposición con la población de `BASE_DATOS_REGISTRO_UNAL_BOGOTA`:
-  - Si hay superposición total: reutilizar `id_unal` existente (semilla `20260223`)
-  - Si hay estudiantes nuevos: extender la llave con semilla nueva documentada
-- Guardar crosswalk en `DatosArmonizados/keys/` (confidencial, nunca a GitHub)
-- Eliminar identificadores personales de todos los archivos de trabajo
+### IDs entre datasets (`09_armonizar_ids.do`)
+- Cruzar cada dataset limpio contra `LLAVE_ID_UNAL` para asignar `id_unal`
+- Documentar estudiantes que aparecen en datasets secundarios pero no en Matriculados
 
-### Formato de períodos (`09_armonizar_periodos.do`)
+### Formato de períodos (`10_armonizar_periodos.do`)
 - Formato canónico: `YYYY-NS` (ej. `2016-1S`, `2023-2S`)
 - Manejar variantes: `20161`, `2016-I`, `2016S1`
 - Generar `periodo_num` (entero ordinal) para ordenamiento correcto en el panel
 
 ---
 
-## Fase 4 — Construcción del Panel Maestro
+## Fase 5 — Construcción del Panel Maestro
 
-**Do-file:** `10_construir_panel.do`
+**Do-file:** `3_BasesdeTrabajo/11_construir_panel.do`
 **Backbone:** `Matriculados` (define quién es estudiante activo en cada período)
 
 ```
@@ -129,9 +150,9 @@ Panel maestro: id_unal × periodo × cod_plan
 
 ---
 
-## Fase 5 — Control de Calidad
+## Fase 6 — Control de Calidad
 
-**Do-file:** `11_control_calidad.do`
+**Do-file:** `3_BasesdeTrabajo/12_control_calidad.do`
 **Salida:** `logs/QC_report_YYYY-MM-DD.md`
 
 Checklist automatizado:
@@ -145,9 +166,9 @@ Checklist automatizado:
 
 ---
 
-## Fase 6 — Muestra y Entregables
+## Fase 7 — Muestra y Entregables
 
-**Do-file:** `12_crear_muestra.do`
+**Do-file:** `3_BasesdeTrabajo/13_crear_muestra.do`
 
 Muestra aleatoria estratificada 5%, estratificada por período y programa. Semilla documentada para replicabilidad.
 
@@ -155,11 +176,11 @@ Muestra aleatoria estratificada 5%, estratificada por período y programa. Semil
 
 | Archivo | Ubicación en Drive | Descripción |
 |---|---|---|
-| `BASE_FCE_ARMONIZADA.dta` | `DatosArmonizados/panel/` | Panel maestro completo |
-| `BASE_FCE_ARMONIZADA.csv` | `DatosArmonizados/panel/` | Misma base en CSV |
+| `BASE_FCE_ARMONIZADA.dta` | `FinalWorkingDataSets/` | Panel maestro completo |
+| `BASE_FCE_ARMONIZADA.csv` | `FinalWorkingDataSets/` | Misma base en CSV |
 | `MUESTRA_FCE_5PCT.dta` | `DatosArmonizados/muestras/` | Muestra para uso en curso |
 | `MUESTRA_FCE_5PCT.csv` | `DatosArmonizados/muestras/` | Misma muestra en CSV |
-| `LLAVE_FCE.dta` | `DatosArmonizados/keys/` | Crosswalk `id_unal` ↔ ID real |
+| `LLAVE_ID_UNAL.dta` | `DatosArmonizados/keys/` | Crosswalk `id_unal` ↔ ID real |
 | `DICCIONARIO_FCE.md` | `docs/` (repo) | Diccionario de todas las variables |
 
 ---
@@ -169,13 +190,14 @@ Muestra aleatoria estratificada 5%, estratificada por período y programa. Semil
 | Semana | Fase | Do-files |
 |---|---|---|
 | 1 | Fase 0 — Infraestructura | — |
-| 1–2 | Fase 1 — Inventario | `01` |
-| 2–4 | Fase 2 — Limpieza | `02` – `07` |
-| 4 | Fase 3 — IDs y períodos | `08`, `09` |
-| 5–6 | Fase 4 — Panel maestro | `10` |
-| 6 | Fase 5 — QC | `11` |
-| 7 | Fase 6 — Muestra y entregables | `12` |
+| 1 | Fase 1 — Anonimización de Matriculados | `01` |
+| 2 | Fase 2 — Inventario y perfilado | `02` |
+| 2–4 | Fase 3 — Limpieza por dataset | `03` – `08` |
+| 4 | Fase 4 — Armonización de IDs y períodos | `09`, `10` |
+| 5–6 | Fase 5 — Panel maestro | `11` |
+| 6 | Fase 6 — Control de calidad | `12` |
+| 7 | Fase 7 — Muestra y entregables | `13` |
 
 ---
 
-*Última actualización: 2026-04-13*
+*Última actualización: 2026-04-13 — Fase 1 reordenada: anonimización de Matriculados es el primer paso sustantivo*
