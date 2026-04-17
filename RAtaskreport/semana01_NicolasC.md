@@ -9,6 +9,13 @@
 
 ## Tareas asignadas esta semana
 
+### Tarea inicial — Script de exploración propio
+
+> Antes de ejecutar los scripts generados por Claude, escribe tu propio código de exploración en el lenguaje de tu preferencia (R, Python o Stata).
+
+- `[ ]` Escribir un script `EX_Matriculados_NC.[ext]` que abra uno de los archivos de tu módulo, liste las variables, muestre las primeras filas y reporte el número de observaciones
+- `[ ]` Hacer **commit y push** del script
+
 ### Tareas comunes del equipo (Fase 0 — Infraestructura)
 
 - `[ ]` Leer `WORKPLAN.md` y `requirements-spec.md` completos y confirmar entendimiento
@@ -91,6 +98,7 @@
 | Actividad | Horas |
 |---|---|
 | Lectura de documentación y configuración | |
+| Escritura de script de exploración (`EX_Matriculados_NC`) | |
 | Configurar `00_configuracion.do` | |
 | Revisar y ejecutar `inventario_matriculados.do` | |
 | Revisar, ajustar y ejecutar `01_crear_llave_idunal.do` | |

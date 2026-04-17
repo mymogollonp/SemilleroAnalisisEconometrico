@@ -9,6 +9,13 @@
 
 ## Tareas asignadas esta semana
 
+### Tarea inicial — Script de exploración propio
+
+> Antes de ejecutar los scripts generados por Claude, escribe tu propio código de exploración en el lenguaje de tu preferencia (R, Python o Stata).
+
+- `[ ]` Escribir un script `EX_Cancelaciones_MJC.[ext]` que abra uno de los archivos de tu módulo, liste las variables, muestre las primeras filas y reporte el número de observaciones
+- `[ ]` Hacer **commit y push** del script
+
 ### Tareas comunes del equipo (Fase 0 — Infraestructura)
 
 - `[ ]` Leer `WORKPLAN.md` y `requirements-spec.md` completos y confirmar entendimiento
@@ -84,6 +91,7 @@
 | Actividad | Horas |
 |---|---|
 | Lectura de documentación y configuración | |
+| Escritura de script de exploración (`EX_Cancelaciones_MJC`) | |
 | Configurar `00_configuracion.do` | |
 | Revisar y ejecutar `inventario_cancelaciones.do` | |
 | Escritura de `09_anonimizar_cancelaciones.do` (si aplica) | |
