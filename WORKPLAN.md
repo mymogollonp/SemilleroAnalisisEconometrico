@@ -24,68 +24,7 @@
 
 ---
 
-## Reglas para RAs
-
-### R1 — Commit y push al terminar código
-
-Cada vez que un RA crea o modifica un script, debe:
-
-1. **Hacer commit** con un mensaje descriptivo que indique qué hace el script y para qué módulo.
-   ```
-   git add 1_LimpiezaDatos/07_anonimizar_matriculados.do   # Stata
-   git add 1_LimpiezaDatos/07_anonimizar_matriculados.R    # R
-   git add 1_LimpiezaDatos/07_anonimizar_matriculados.py   # Python
-   git commit -m "feat: anonimizar matriculados - reemplaza correo por id_unal"
-   ```
-2. **Hacer push** al repositorio remoto en GitHub inmediatamente después del commit.
-   ```
-   git push
-   ```
-
-> El repositorio en GitHub es la única fuente de verdad para el código. Un script que no está en GitHub no existe para el equipo.
-
-### R2 — Actualizar el reporte de tareas
-
-Cada vez que un RA completa una tarea (o la avanza/bloquea), debe actualizar su archivo de reporte semanal en `RAtaskreport/semanaNN_NombreA.md`:
-
-- Cambiar el estado de la tarea: `[ ]` → `[x]` (completada), `[-]` (en progreso), o `[!]` (bloqueada)
-- Llenar la tabla de archivos creados o modificados
-- Anotar cualquier problema encontrado en la tabla de problemas
-- Hacer commit y push del reporte actualizado junto con el código o de forma independiente
-
-### R3 — No datos en GitHub
-
-El repositorio solo contiene código, documentación y logs. Nunca subir archivos de datos (`.csv`, `.xlsx`, `.zip`, etc.). El `.gitignore` ya excluye estos formatos.
-
-### R4 — Un script por tarea
-
-Cada script tiene una sola responsabilidad (anonimizar un módulo, limpiar un módulo, etc.). No combinar tareas de distintas fases en un mismo script.
-
-### R5 — Configurar rutas en el archivo de configuración
-
-El proyecto usa un archivo de configuración de rutas que todos los scripts importan. El archivo de referencia es `00_configuracion.do` (Stata), pero si usas R o Python debes crear el equivalente:
-
-| Lenguaje | Archivo de configuración | Mecanismo |
-|---|---|---|
-| Stata | `00_configuracion.do` | `global dir_datos "..."` |
-| R | `00_config.R` | `dir_datos <- "..."` |
-| Python | `00_config.py` | `dir_datos = "..."` |
-
-Cada RA agrega su bloque de rutas al archivo de configuración de su lenguaje y hace **commit y push**.
-
-> Nunca hardcodear rutas absolutas fuera del archivo de configuración. Si un script no corre en otra máquina, la causa es casi siempre una ruta mal configurada aquí.
-
-### R6 — Nunca modificar DatosOriginales
-
-La carpeta `DatosOriginales/` es de solo lectura. Ningún script, ni acción manual puede crear, editar, renombrar o eliminar archivos dentro de ella.
-
-- Los scripts solo **leen** de `DatosOriginales/` — nunca escriben en ella.
-- Todos los outputs (anonimizados, limpios, procesados) se guardan en `DatosArmonizados/` o sus subcarpetas.
-- Si un archivo original parece incorrecto o incompleto, documentarlo en el reporte semanal y notificar al PI/CoPI.
-
-### R7 — Documentar la semilla y las rutas
-
-Todo script que use una semilla aleatoria debe declararla explícitamente con un comentario. Todas las rutas deben usar las variables definidas en el archivo de configuración, nunca rutas absolutas hardcodeadas.
+> Las reglas del proyecto para RAs están documentadas en [RULES_RA.md](RULES_RA.md).
 
 ---
 
@@ -112,21 +51,41 @@ Todo script que use una semilla aleatoria debe declararla explícitamente con un
 ## Estructura de carpetas en Drive (datos)
 
 ```
-DatosArmonizados/
-├── keys/                        ← crosswalks de anonimización (confidencial, nunca a GitHub)
-│   ├── MASTER_PERSONAS_PII.csv
-│   └── LLAVE_ID_UNAL_FCE.csv
-├── 1_DatosAnonimizados/         ← archivos originales anonimizados, un CSV por archivo fuente
-│   ├── MASTER_PERSONAS_ANON.csv ← dataset maestro de personas anonimizado
-│   ├── Matriculado/
-│   ├── Cursadas/
-│   ├── Cancelaciones/
-│   ├── Egresados/
-│   └── Retirados/
-├── 2_DatosLimpios/              ← outputs de limpieza (un CSV limpio por módulo)
-├── panel/                       ← panel maestro
-├── muestras/                    ← muestras
-└── outputs/                     ← tablas y figuras
+C:\Drive2023\UNAL_Docente\SemilleroAnalisisEconometrico\
+├── DatosOriginales\             ← READ-ONLY: nunca modificar
+│   ├── Matriculado\
+│   ├── Cursadas\
+│   ├── Cancelaciones\
+│   ├── Egresados\
+│   └── Retirados\
+├── Diccionarios\                ← diccionarios de variables por módulo (creados por Mauricio Hernandez)
+│   ├── Diccionario_Cancelaciones.xlsx
+│   ├── Diccionario_Columnas.xlsx
+│   ├── Diccionario_Cursadas.xlsx
+│   ├── Diccionario_Egresados.xlsx
+│   ├── Dicionario_Matriculados.xlsx
+│   └── Dicionario_Retirados.xlsx
+├── HeredadoMarcos\
+└── DatosArmonizados\
+    ├── keys\                    ← crosswalks de anonimización (confidencial, nunca a GitHub)
+    │   ├── MASTER_PERSONAS_MATRICULADOS_PII.csv
+    │   ├── MASTER_PERSONAS_CURSADAS_PII.csv
+    │   ├── MASTER_PERSONAS_CANCELACIONES_PII.csv
+    │   ├── MASTER_PERSONAS_EGRESADOS_PII.csv
+    │   ├── MASTER_PERSONAS_RETIRADOS_PII.csv
+    │   ├── MASTER_PERSONAS_PII.csv     ← consolidado (generado por PI/Data Scientist)
+    │   └── LLAVE_ID_UNAL_FCE.csv       ← crosswalk id_real ↔ id_unal
+    ├── 1_DatosAnonimizados\     ← archivos originales anonimizados, un CSV por archivo fuente
+    │   ├── MASTER_PERSONAS_ANON.csv
+    │   ├── Matriculado\
+    │   ├── Cursadas\
+    │   ├── Cancelaciones\
+    │   ├── Egresados\
+    │   └── Retirados\
+    ├── 2_DatosLimpios\          ← outputs de limpieza (un CSV limpio por módulo)
+    ├── panel\                   ← panel maestro
+    ├── muestras\                ← muestras
+    └── outputs\                 ← tablas y figuras
 ```
 
 ---
@@ -143,32 +102,43 @@ DatosArmonizados/
 - [ ] Crear `logs/.gitkeep` para versionar la carpeta vacía
 - [ ] Primer commit y push a GitHub con estructura base
 
-### Do-files generados (revisar y ejecutar)
+### Scripts de referencia para inventario
 
----
+> Los do-files en `1_LimpiezaDatos/02_inventario_*.do` son scripts de referencia generados previamente. Los RAs **no están obligados a ejecutarlos** — cada RA debe escribir su propio script de inventario en el lenguaje de su preferencia (Stata, R o Python).
 
-| Do-file | Responsable | Descripción |
+| Script de referencia (Stata) | Responsable | Descripción |
 |---|---|---|
-| `1_LimpiezaDatos/02_inventario_matriculados.do` | Nicolas Camacho | Perfila todos los archivos Matriculados; identifica campo de ID, consistencia de variables, y clave única de observación |
-| `1_LimpiezaDatos/02_inventario_cursadas.do` | Jeronimo Jimenez | Idem Cursadas; verifica escala de calificaciones 0–5; identifica clave única |
-| `1_LimpiezaDatos/02_inventario_cancelaciones.do` | Maria Jose Cadena | Idem Cancelaciones; identifica formato de fecha de cancelación y clave única |
-| `1_LimpiezaDatos/02_inventario_egresados.do` | Nicolas Jimenez | Idem Egresados; identifica formato de fecha de grado y clave única |
-| `1_LimpiezaDatos/02_inventario_retirados.do` | Nicolas Jimenez | Perfila el archivo único Retirados_desde_2009.xlsx; identifica clave única |
+| `1_LimpiezaDatos/02_inventario_matriculados.do` | Nicolas Camacho | Referencia: perfila Matriculados; identifica campo de ID, consistencia de variables, clave única |
+| `1_LimpiezaDatos/02_inventario_cursadas.do` | Jeronimo Jimenez | Referencia: perfila Cursadas; verifica escala 0–5; identifica clave única |
+| `1_LimpiezaDatos/02_inventario_cancelaciones.do` | Maria Jose Cadena | Referencia: perfila Cancelaciones; identifica formato de fecha y clave única |
+| `1_LimpiezaDatos/02_inventario_egresados.do` | Nicolas Jimenez | Referencia: perfila Egresados; identifica formato de fecha de grado y clave única |
+| `1_LimpiezaDatos/02_inventario_retirados.do` | Nicolas Jimenez | Referencia: perfila Retirados_desde_2009.xlsx; identifica clave única |
 
-### Paso 1b — Master Dataset de Personas (con PII)
+### Paso 1b — Master Dataset de Personas por Módulo (con PII)
 
-1. Todos los RAs completan su bloque en `00_configuracion.do` y hacen commit+push
-2. Nicolas Camacho ejecuta `inventario_matriculados.do` → identifica `VAR_ID_PERSONAL`
-3. Nicolas Camacho actualiza `01_crear_llave_idunal.do` y lo ejecuta → genera la llave
-4. Nicolas Camacho notifica al equipo que `LLAVE_ID_UNAL_FCE.csv` está disponible
-5. Los demás RAs ejecutan sus inventarios en paralelo mientras esperan la llave
+Cada RA construye su propio Master Personas a partir de todos los archivos de su módulo:
+
+1. Escribir un script de inventario propio → identificar la variable de ID personal (correo, cédula, nombre) en todos los archivos del módulo
+2. Extraer las personas únicas con sus variables PII
+3. Guardar como `DatosArmonizados/keys/MASTER_PERSONAS_[MODULO]_PII.csv` (confidencial, solo en Drive)
+4. Reportar el número de personas únicas en el reporte semanal
+
+| RA | Archivo de salida (en `DatosArmonizados/keys/`) |
+|---|---|
+| Nicolas Camacho | `MASTER_PERSONAS_MATRICULADOS_PII.csv` |
+| Jeronimo Jimenez | `MASTER_PERSONAS_CURSADAS_PII.csv` |
+| Maria Jose Cadena | `MASTER_PERSONAS_CANCELACIONES_PII.csv` |
+| Nicolas Jimenez | `MASTER_PERSONAS_EGRESADOS_PII.csv` y `MASTER_PERSONAS_RETIRADOS_PII.csv` |
+
+> **Consolidación:** una vez todos los RAs entreguen sus archivos, el PI o Data Scientist consolida en `MASTER_PERSONAS_PII.csv` antes de generar la llave.
 
 ### Creación de la llave de anonimización
-**Do-file:** `1_LimpiezaDatos/01_crear_llave_idunal.do`
-**Responsable:** Nicolas Camacho
+
+**Script de referencia (Stata):** `1_LimpiezaDatos/01_crear_llave_idunal.do`
+**Responsable:** Nicolas Camacho (una vez que el PI/Data Scientist haya consolidado `MASTER_PERSONAS_PII.csv`)
 **Salida:** `DatosArmonizados/keys/LLAVE_ID_UNAL_FCE.csv` (confidencial)
 
-1. Leer `MASTER_PERSONAS_PII.csv`
+1. Leer `MASTER_PERSONAS_PII.csv` (archivo consolidado — prerequisito: todos los RAs deben haber entregado su MASTER_PERSONAS_[MODULO]_PII.csv)
 2. Generar `id_unal` mediante permutación aleatoria con semilla `20260223`, formato `UNAL000001`
 3. Guardar crosswalk `id_real ↔ id_unal` como `LLAVE_ID_UNAL_FCE.csv`
 4. Notificar al equipo que la llave está disponible
@@ -191,7 +161,7 @@ DatosArmonizados/
 
 ### Contenido del dataset
 
-> Los do-files de anonimización serán generados por cada RA en la Semana 2, después de haber ejecutado los inventarios y recibido la llave. Usar los inventarios como guía para conocer los nombres exactos de las variables antes de escribir el código.
+> Los RAs escriben sus propios scripts de anonimización en el lenguaje de su preferencia (Stata, R o Python). Usar los inventarios como guía para conocer los nombres exactos de las variables antes de escribir el código. Los scripts en `1_LimpiezaDatos/07_anonimizar_*.do` son referencia, no obligación.
 
 1. **Importar** el archivo Excel (`import excel using ..., firstrow`)
 2. **Merge con la llave** — `merge m:1 <id_real> using LLAVE_ID_UNAL_FCE.csv`, verificar que todos los registros cruzan (`_merge==3`)
@@ -205,39 +175,30 @@ DatosArmonizados/
 
 ## Fase 2 — Inventario, Perfilado y Diccionario
 
-**Objetivo:** documentar qué hay en cada fuente ya anonimizada; identificar inconsistencias de nomenclatura entre archivos del mismo módulo y entre módulos; producir un diccionario de variables originales.
-
-**Do-file:** `2_LimpiezaDatos/07_inventario_datos.do`
-**Salidas:**
-- `logs/session_YYYY-MM-DD.md` — hallazgos y decisiones
-- `docs/fuentes_datos.md` — ficha técnica de cada fuente
-- `docs/DICCIONARIO_VARIABLES_ORIGINALES.xlsx` — diccionario colaborativo (ver abajo)
+**Objetivo:** documentar qué hay en cada fuente; identificar inconsistencias de nomenclatura entre archivos del mismo módulo y entre módulos; completar el diccionario de variables.
 
 ### Tareas por RA
 
-Cada RA trabaja sobre los CSVs anonimizados de su módulo en `1_DatosAnonimizados/`. Para cada dataset debe:
+Cada RA trabaja sobre los archivos originales de su módulo en `DatosOriginales/`. Para cada dataset debe:
 
-1. **Perfilar variables** — listar variables disponibles, tipos, rangos, tasas de missings, número de observaciones por período
+1. **Perfilar variables** — listar variables disponibles, tipos, rangos, tasas de missings, número de observaciones por período (salida del script de inventario)
 2. **Detectar inconsistencias de nombres** — comparar encabezados entre todos los archivos del mismo módulo (ej. ¿`CODIGO_PROGRAMA` en 2009 se llama `COD_PLAN` en 2020?)
-3. **Completar el diccionario colaborativo** — llenar las filas correspondientes a su módulo en `DICCIONARIO_VARIABLES_ORIGINALES.xlsx`
+3. **Completar el diccionario de su módulo** — actualizar el archivo Excel correspondiente en `Diccionarios/`
 
-### Diccionario colaborativo (`docs/DICCIONARIO_VARIABLES_ORIGINALES.xlsx`)
+### Diccionarios de variables (`Diccionarios/` en Drive)
 
-Archivo Excel en Drive. Cada RA llena las columnas de su módulo. Estructura mínima:
+Los diccionarios ya fueron creados por Mauricio Hernandez. Cada RA debe **completar y verificar** el archivo de su módulo con base en su propio inventario:
 
-| nombre_variable_original | módulo | tipo | descripción | valores_ejemplo | nombre_canónico_propuesto | cambia_entre_años | notas |
-|---|---|---|---|---|---|---|---|
-| `COD_PLAN` | Matriculados | string | código del programa académico | `2879` | `cod_plan` | No | |
-| `CODIGO_PROGRAMA` | Matriculados | string | igual a COD_PLAN en archivos pre-2015 | `2879` | `cod_plan` | Sí — renombrado en 2015 | verificar |
+| RA | Archivo a completar | Ruta en Drive |
+|---|---|---|
+| Nicolas Camacho | `Dicionario_Matriculados.xlsx` | `Diccionarios/Dicionario_Matriculados.xlsx` |
+| Jeronimo Jimenez | `Diccionario_Cursadas.xlsx` | `Diccionarios/Diccionario_Cursadas.xlsx` |
+| Maria Jose Cadena | `Diccionario_Cancelaciones.xlsx` | `Diccionarios/Diccionario_Cancelaciones.xlsx` |
+| Nicolas Jimenez | `Diccionario_Egresados.xlsx` y `Dicionario_Retirados.xlsx` | `Diccionarios/` |
+
+> `Diccionario_Columnas.xlsx` es el diccionario de columnas comunes entre módulos — revisarlo para evitar duplicar descripciones ya existentes.
 
 > **Tarea crítica:** anotar explícitamente cuando un nombre de variable cambia entre años dentro del mismo módulo. El PI y CoPI asignarán el nombre canónico antes de iniciar Fase 3.
-
-| RA | Módulo a documentar |
-|---|---|
-| Nicolas Camacho | Matriculados |
-| Jeronimo Jimenez | Cursadas |
-| Maria Jose Cadena | Cancelaciones |
-| Nicolas Jimenez | Egresados y Retirados |
 
 ---
 
@@ -354,4 +315,4 @@ Muestra aleatoria estratificada 5%, estratificada por período y programa. Semil
 
 ---
 
-*Última actualización: 2026-04-14 — Fase 0 incluye creación de llave; Fase 1 anonimiza todos los archivos originales y guarda CSVs en `1_DatosAnonimizados/`; todos los outputs son CSV, sin archivos .dta*
+*Última actualización: 2026-04-17 — Reglas de RAs extraídas a `RULES_RA.md`; cada RA construye su propio `MASTER_PERSONAS_[MODULO]_PII.csv`; consolidación por PI/Data Scientist; los scripts generados son referencia, no obligación; diccionarios ya creados por Mauricio Hernandez en `Diccionarios/` — RAs solo completan*

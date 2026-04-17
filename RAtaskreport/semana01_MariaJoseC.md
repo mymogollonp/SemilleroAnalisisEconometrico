@@ -7,6 +7,20 @@
 
 ---
 
+## Reglas del proyecto
+
+> Ver [RULES_RA.md](../RULES_RA.md) para la versión completa.
+
+**R1:** Hacer commit y push al terminar cada script.
+**R2:** Actualizar este reporte cuando termines, avances o bloquees una tarea (`[ ]` → `[x]`, `[-]`, o `[!]`).
+**R3:** No subir datos a GitHub (`.csv`, `.xlsx`, `.zip`).
+**R4:** Un script por tarea — no combinar fases.
+**R5:** Todas las rutas en el archivo de configuración (`00_configuracion.do`, `00_config.R` o `00_config.py`). Nunca hardcodear paths.
+**R6:** `DatosOriginales/` es de solo lectura — los scripts solo leen, nunca escriben allí.
+**R7:** Documentar la semilla en todo script que use aleatoriedad.
+
+---
+
 ## Tareas asignadas esta semana
 
 ### Tarea inicial — Script de exploración propio
@@ -27,25 +41,39 @@
 
 ### Tareas específicas — Inventario de Cancelaciones
 
-> El do-file `inventario_cancelaciones.do` fue generado por Claude. Tu tarea es revisarlo, entenderlo y ejecutarlo.
+> El script `1_LimpiezaDatos/02_inventario_cancelaciones.do` es un **script de referencia** generado previamente. No estás obligada a ejecutarlo — escribe tu propio script de inventario en el lenguaje de tu preferencia (R, Python o Stata).
 
-- `[ ]` Leer y entender `1_LimpiezaDatos/02_inventario_cancelaciones.do` antes de ejecutarlo
-- `[ ]` Ejecutar `inventario_cancelaciones.do` y revisar el log generado en `logs/`
+- `[ ]` Escribir tu propio script de inventario para Cancelaciones
+- `[ ]` El script debe: abrir cada archivo, listar variables y tipos, contar missings, comparar encabezados entre años, mostrar ejemplos de valores para la variable de fecha/período de cancelación, reportar N observaciones por archivo
 - `[ ]` Documentar en "Comentarios adicionales":
   - Nombre exacto del campo de ID personal
   - Lista completa de variables
   - Si los nombres de variables cambian entre años
-  - Cómo está codificada la fecha o período de cancelación (el do-file muestra ejemplos de valores)
-  - Verificar que el primer archivo es `Cancelaciones_2009-2S.xlsx` (no existe 2009-1S)
+  - Cómo está codificada la fecha o período de cancelación
+  - Confirmar que el primer archivo es `Cancelaciones_2009-2S.xlsx` (no existe 2009-1S)
   - La(s) variable(s) que identifican de forma única una observación
-- `[ ]` Hacer **commit y push** del log generado
+- `[ ]` Hacer **commit y push** del script de inventario
+
+### Tareas específicas — Master Dataset de Personas (Cancelaciones)
+
+- `[ ]` A partir del inventario, identificar las variables con datos personales (nombre, correo, cédula)
+- `[ ]` Escribir un script que extraiga personas únicas de todos los archivos Cancelaciones
+- `[ ]` Guardar como `DatosArmonizados/keys/MASTER_PERSONAS_CANCELACIONES_PII.csv` (solo en Drive, nunca a GitHub)
+- `[ ]` Reportar el número de personas únicas en "Comentarios adicionales"
+- `[ ]` Hacer **commit y push** del script
+
+### Tareas específicas — Diccionario de variables
+
+- `[ ]` Abrir `Diccionarios/Diccionario_Cancelaciones.xlsx` en Drive
+- `[ ]` Completar las filas faltantes y verificar la información existente con base en el inventario
+- `[ ]` Documentar en "Comentarios adicionales" cualquier variable no documentada o discrepancia encontrada
 
 ### Tareas específicas — Anonimización de Cancelaciones
 
 > Dependencia: requiere que Nicolas Camacho haya generado y compartido `LLAVE_ID_UNAL_FCE.csv`.
 
 - `[ ]` Esperar confirmación de Nicolas Camacho de que la llave está disponible
-- `[ ]` Si la llave está disponible esta semana: crear `1_LimpiezaDatos/09_anonimizar_cancelaciones.do` siguiendo el patrón del workplan, hacer **commit y push**
+- `[ ]` Si la llave está disponible esta semana: escribir tu propio script `1_LimpiezaDatos/09_anonimizar_cancelaciones.[ext]`, hacer **commit y push**
 
 ---
 
@@ -53,8 +81,12 @@
 
 | Archivo | Acción | Observación |
 |---|---|---|
-| `00_configuracion.do` | Modificado | Agregar bloque de rutas para tu PC |
-| `1_LimpiezaDatos/09_anonimizar_cancelaciones.do` | Crear | Solo si la llave está disponible esta semana |
+| `00_configuracion.do` / `00_config.R` / `00_config.py` | Modificado | Agregar bloque de rutas para tu PC |
+| `EX_Cancelaciones_MJC.[ext]` | Creado | Script de exploración inicial |
+| `[tu_script_inventario_MJC].[ext]` | Creado | Script de inventario propio |
+| `[tu_script_master_personas_MJC].[ext]` | Creado | Script que genera MASTER_PERSONAS_CANCELACIONES_PII |
+| `DatosArmonizados/keys/MASTER_PERSONAS_CANCELACIONES_PII.csv` | Creado | PII confidencial — solo en Drive, nunca a GitHub |
+| `1_LimpiezaDatos/09_anonimizar_cancelaciones.[ext]` | Creado | Solo si la llave está disponible esta semana |
 
 ---
 
@@ -76,13 +108,19 @@
 
 **Campo de ID personal en Cancelaciones:** (completar)
 
-**Variables identificadas en Cancelaciones:** (completar — pegar lista del log del inventario)
+**Variables identificadas en Cancelaciones:** (completar — pegar lista del inventario)
 
-**Formato de la fecha/período de cancelación:** (completar — el inventario muestra ejemplos de valores string; documentar si es fecha completa, YYYY-NS, otro)
+**Formato de la fecha/período de cancelación:** (completar — documentar si es fecha completa, YYYY-NS, otro; mostrar ejemplos de valores)
 
-**¿Cambian nombres de variables entre años?** (completar — el inventario reporta inconsistencias automáticamente)
+**¿Cambian nombres de variables entre años?** (completar — Sí / No; si Sí, detallar)
+
+**¿El primer archivo es `Cancelaciones_2009-2S.xlsx`?** (completar — confirmar que no existe 2009-1S)
 
 **Clave única de observación en Cancelaciones:** (completar — ej. "La variable `correo_unal` identifica de forma única cada fila" o indicar clave compuesta)
+
+**Número de personas únicas en MASTER_PERSONAS_CANCELACIONES_PII:** (completar)
+
+**Discrepancias o variables no documentadas en `Diccionario_Cancelaciones.xlsx`:** (completar)
 
 ---
 
@@ -92,7 +130,9 @@
 |---|---|
 | Lectura de documentación y configuración | |
 | Escritura de script de exploración (`EX_Cancelaciones_MJC`) | |
-| Configurar `00_configuracion.do` | |
-| Revisar y ejecutar `inventario_cancelaciones.do` | |
-| Escritura de `09_anonimizar_cancelaciones.do` (si aplica) | |
+| Configurar archivo de rutas | |
+| Escritura y ejecución de script de inventario propio | |
+| Escritura de script Master Personas Cancelaciones PII | |
+| Completar `Diccionario_Cancelaciones.xlsx` | |
+| Escritura de `09_anonimizar_cancelaciones.[ext]` (si aplica) | |
 | **Total** | |

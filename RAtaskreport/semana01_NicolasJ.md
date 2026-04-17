@@ -7,6 +7,20 @@
 
 ---
 
+## Reglas del proyecto
+
+> Ver [RULES_RA.md](../RULES_RA.md) para la versión completa.
+
+**R1:** Hacer commit y push al terminar cada script.
+**R2:** Actualizar este reporte cuando termines, avances o bloquees una tarea (`[ ]` → `[x]`, `[-]`, o `[!]`).
+**R3:** No subir datos a GitHub (`.csv`, `.xlsx`, `.zip`).
+**R4:** Un script por tarea — no combinar fases.
+**R5:** Todas las rutas en el archivo de configuración (`00_configuracion.do`, `00_config.R` o `00_config.py`). Nunca hardcodear paths.
+**R6:** `DatosOriginales/` es de solo lectura — los scripts solo leen, nunca escriben allí.
+**R7:** Documentar la semilla en todo script que use aleatoriedad.
+
+---
+
 ## Tareas asignadas esta semana
 
 ### Tarea inicial — Script de exploración propio
@@ -27,30 +41,45 @@
 
 ### Tareas específicas — Inventario de Egresados
 
-> El do-file `inventario_egresados.do` fue generado por Claude. Tu tarea es revisarlo, entenderlo y ejecutarlo.
+> El script `1_LimpiezaDatos/02_inventario_egresados.do` es un **script de referencia** generado previamente. No estás obligado a ejecutarlo — escribe tu propio script de inventario en el lenguaje de tu preferencia (R, Python o Stata).
 
-- `[ ]` Leer y entender `1_LimpiezaDatos/02_inventario_egresados.do` antes de ejecutarlo
-- `[ ]` Ejecutar `inventario_egresados.do` y revisar el log generado en `logs/`
+- `[ ]` Escribir tu propio script de inventario para Egresados
+- `[ ]` El script debe: abrir cada archivo, listar variables y tipos, contar missings, comparar encabezados entre años, mostrar ejemplos de valores para la fecha de grado, reportar N observaciones por archivo
 - `[ ]` Documentar en "Comentarios adicionales":
   - Nombre exacto del campo de ID personal
   - Lista completa de variables
   - Si los nombres de variables cambian entre años
-  - Cómo está codificada la fecha de grado (el do-file muestra ejemplos de valores)
+  - Cómo está codificada la fecha de grado (ejemplos de valores)
   - La(s) variable(s) que identifican de forma única una observación
-- `[ ]` Hacer **commit y push** del log generado
+- `[ ]` Hacer **commit y push** del script de inventario
 
 ### Tareas específicas — Inventario de Retirados
 
-> El do-file `inventario_retirados.do` fue generado por Claude. Tu tarea es revisarlo, entenderlo y ejecutarlo.
+> El script `1_LimpiezaDatos/02_inventario_retirados.do` es un **script de referencia** generado previamente. No estás obligado a ejecutarlo — escribe tu propio script de inventario.
 
-- `[ ]` Leer y entender `1_LimpiezaDatos/02_inventario_retirados.do` antes de ejecutarlo
-- `[ ]` Ejecutar `inventario_retirados.do` y revisar el log generado en `logs/`
+- `[ ]` Escribir tu propio script de inventario para Retirados (archivo único: `Retirados_desde_2009.xlsx`)
+- `[ ]` El script debe: listar variables y tipos, contar missings, mostrar ejemplos de valores para el período de retiro, reportar N total de observaciones
 - `[ ]` Documentar en "Comentarios adicionales":
   - Nombre del campo de ID personal
   - Variables disponibles
-  - Cómo está codificado el período de retiro
+  - Cómo está codificado el período de retiro (ejemplos)
   - Número total de observaciones
   - La(s) variable(s) que identifican de forma única una observación
+- `[ ]` Hacer **commit y push** del script de inventario
+
+### Tareas específicas — Master Dataset de Personas (Egresados y Retirados)
+
+- `[ ]` A partir de los inventarios, identificar las variables con datos personales en cada módulo
+- `[ ]` Escribir un script que extraiga personas únicas de todos los archivos Egresados → guardar como `DatosArmonizados/keys/MASTER_PERSONAS_EGRESADOS_PII.csv`
+- `[ ]` Escribir un script que extraiga personas únicas de Retirados → guardar como `DatosArmonizados/keys/MASTER_PERSONAS_RETIRADOS_PII.csv`
+- `[ ]` Reportar el número de personas únicas en cada módulo en "Comentarios adicionales"
+- `[ ]` Hacer **commit y push** de los scripts
+
+### Tareas específicas — Diccionario de variables
+
+- `[ ]` Abrir `Diccionarios/Diccionario_Egresados.xlsx` en Drive y completar las filas faltantes
+- `[ ]` Abrir `Diccionarios/Dicionario_Retirados.xlsx` en Drive y completar las filas faltantes
+- `[ ]` Documentar en "Comentarios adicionales" cualquier variable no documentada o discrepancia encontrada
 
 ### Tareas específicas — Anonimización
 
@@ -58,10 +87,10 @@
 
 - `[ ]` Esperar confirmación de Nicolas Camacho de que la llave está disponible
 - `[ ]` Si la llave está disponible esta semana:
-  - Crear `1_LimpiezaDatos/10_anonimizar_egresados.do`, hacer **commit y push**
-  - Crear `1_LimpiezaDatos/11_anonimizar_retirados.do`, hacer **commit y push**
+  - Escribir tu propio script `1_LimpiezaDatos/10_anonimizar_egresados.[ext]`, hacer **commit y push**
+  - Escribir tu propio script `1_LimpiezaDatos/11_anonimizar_retirados.[ext]`, hacer **commit y push**
 
-> **Nota:** Retirados tiene un solo archivo — una vez disponible la llave, `11_anonimizar_retirados.do` puede completarse rápidamente.
+> **Nota:** Retirados tiene un solo archivo — una vez disponible la llave, `11_anonimizar_retirados.[ext]` puede completarse rápidamente.
 
 ---
 
@@ -69,9 +98,16 @@
 
 | Archivo | Acción | Observación |
 |---|---|---|
-| `00_configuracion.do` | Modificado | Agregar bloque de rutas para tu PC |
-| `1_LimpiezaDatos/10_anonimizar_egresados.do` | Crear | Solo si la llave está disponible esta semana |
-| `1_LimpiezaDatos/11_anonimizar_retirados.do` | Crear | Solo si la llave está disponible esta semana |
+| `00_configuracion.do` / `00_config.R` / `00_config.py` | Modificado | Agregar bloque de rutas para tu PC |
+| `EX_Egresados_NJ.[ext]` o `EX_Retirados_NJ.[ext]` | Creado | Script de exploración inicial |
+| `[tu_script_inventario_egresados_NJ].[ext]` | Creado | Script de inventario propio — Egresados |
+| `[tu_script_inventario_retirados_NJ].[ext]` | Creado | Script de inventario propio — Retirados |
+| `[tu_script_master_egresados_NJ].[ext]` | Creado | Script que genera MASTER_PERSONAS_EGRESADOS_PII |
+| `[tu_script_master_retirados_NJ].[ext]` | Creado | Script que genera MASTER_PERSONAS_RETIRADOS_PII |
+| `DatosArmonizados/keys/MASTER_PERSONAS_EGRESADOS_PII.csv` | Creado | PII confidencial — solo en Drive, nunca a GitHub |
+| `DatosArmonizados/keys/MASTER_PERSONAS_RETIRADOS_PII.csv` | Creado | PII confidencial — solo en Drive, nunca a GitHub |
+| `1_LimpiezaDatos/10_anonimizar_egresados.[ext]` | Creado | Solo si la llave está disponible esta semana |
+| `1_LimpiezaDatos/11_anonimizar_retirados.[ext]` | Creado | Solo si la llave está disponible esta semana |
 
 ---
 
@@ -93,23 +129,29 @@
 
 **Campo de ID personal en Egresados:** (completar)
 
-**Variables identificadas en Egresados:** (completar — pegar lista del log del inventario)
+**Variables identificadas en Egresados:** (completar — pegar lista del inventario)
 
-**Formato de la fecha de grado en Egresados:** (completar — el inventario muestra ejemplos de valores)
+**Formato de la fecha de grado en Egresados:** (completar — mostrar ejemplos de valores)
 
-**¿Cambian nombres de variables entre años en Egresados?** (completar)
+**¿Cambian nombres de variables entre años en Egresados?** (completar — Sí / No; si Sí, detallar)
+
+**Clave única de observación en Egresados:** (completar — ej. "`correo_unal` es clave única" o indicar clave compuesta)
+
+**Número de personas únicas en MASTER_PERSONAS_EGRESADOS_PII:** (completar)
 
 **Campo de ID personal en Retirados:** (completar)
 
 **Variables identificadas en Retirados:** (completar)
 
-**Cómo está codificado el período de retiro:** (completar)
+**Cómo está codificado el período de retiro:** (completar — mostrar ejemplos de valores)
 
 **Número de observaciones en `Retirados_desde_2009.xlsx`:** (completar)
 
-**Clave única de observación en Egresados:** (completar — ej. "`correo_unal` es clave única" o indicar clave compuesta)
-
 **Clave única de observación en Retirados:** (completar — ej. "`correo_unal` es clave única" o indicar clave compuesta)
+
+**Número de personas únicas en MASTER_PERSONAS_RETIRADOS_PII:** (completar)
+
+**Discrepancias en `Diccionario_Egresados.xlsx` o `Dicionario_Retirados.xlsx`:** (completar)
 
 ---
 
@@ -119,8 +161,10 @@
 |---|---|
 | Lectura de documentación y configuración | |
 | Escritura de script de exploración (`EX_Egresados_NJ` o `EX_Retirados_NJ`) | |
-| Configurar `00_configuracion.do` | |
-| Revisar y ejecutar `inventario_egresados.do` | |
-| Revisar y ejecutar `inventario_retirados.do` | |
-| Escritura de do-files de anonimización (si aplica) | |
+| Configurar archivo de rutas | |
+| Escritura y ejecución de script de inventario — Egresados | |
+| Escritura y ejecución de script de inventario — Retirados | |
+| Escritura de scripts Master Personas (Egresados + Retirados) | |
+| Completar diccionarios (Egresados + Retirados) | |
+| Escritura de scripts de anonimización (si aplica) | |
 | **Total** | |

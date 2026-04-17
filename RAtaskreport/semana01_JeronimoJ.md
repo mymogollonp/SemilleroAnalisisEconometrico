@@ -7,6 +7,20 @@
 
 ---
 
+## Reglas del proyecto
+
+> Ver [RULES_RA.md](../RULES_RA.md) para la versión completa.
+
+**R1:** Hacer commit y push al terminar cada script.
+**R2:** Actualizar este reporte cuando termines, avances o bloquees una tarea (`[ ]` → `[x]`, `[-]`, o `[!]`).
+**R3:** No subir datos a GitHub (`.csv`, `.xlsx`, `.zip`).
+**R4:** Un script por tarea — no combinar fases.
+**R5:** Todas las rutas en el archivo de configuración (`00_configuracion.do`, `00_config.R` o `00_config.py`). Nunca hardcodear paths.
+**R6:** `DatosOriginales/` es de solo lectura — los scripts solo leen, nunca escriben allí.
+**R7:** Documentar la semilla en todo script que use aleatoriedad.
+
+---
+
 ## Tareas asignadas esta semana
 
 ### Tarea inicial — Script de exploración propio
@@ -27,25 +41,38 @@
 
 ### Tareas específicas — Inventario de Cursadas
 
-> El do-file `inventario_cursadas.do` fue generado por Claude. Tu tarea es revisarlo, entenderlo y ejecutarlo.
+> El script `1_LimpiezaDatos/02_inventario_cursadas.do` es un **script de referencia** generado previamente. No estás obligado a ejecutarlo — escribe tu propio script de inventario en el lenguaje de tu preferencia (R, Python o Stata).
 
-- `[ ]` Leer y entender `1_LimpiezaDatos/02_inventario_cursadas.do` antes de ejecutarlo
-- `[ ]` Ejecutar `inventario_cursadas.do` y revisar el log generado en `logs/`
+- `[ ]` Escribir tu propio script de inventario para Cursadas
+- `[ ]` El script debe: abrir cada archivo, listar variables y tipos, contar missings, comparar encabezados entre años, reportar N observaciones por archivo, verificar que las calificaciones están en escala 0–5
 - `[ ]` Documentar en "Comentarios adicionales":
   - Nombre exacto del campo de ID personal
   - Lista completa de variables
   - Si los nombres de variables cambian entre años
-  - Si la escala de calificaciones es 0–5 en todos los archivos (el do-file lo reporta automáticamente)
+  - Si la escala de calificaciones es 0–5 en todos los archivos
   - La(s) variable(s) que identifican de forma única una observación
-- `[ ]` Hacer **commit y push** del log generado
+- `[ ]` Hacer **commit y push** del script de inventario
+
+### Tareas específicas — Master Dataset de Personas (Cursadas)
+
+- `[ ]` A partir del inventario, identificar las variables con datos personales (nombre, correo, cédula)
+- `[ ]` Escribir un script que extraiga personas únicas de todos los archivos Cursadas
+- `[ ]` Guardar como `DatosArmonizados/keys/MASTER_PERSONAS_CURSADAS_PII.csv` (solo en Drive, nunca a GitHub)
+- `[ ]` Reportar el número de personas únicas en "Comentarios adicionales"
+- `[ ]` Hacer **commit y push** del script
+
+### Tareas específicas — Diccionario de variables
+
+- `[ ]` Abrir `Diccionarios/Diccionario_Cursadas.xlsx` en Drive
+- `[ ]` Completar las filas faltantes y verificar la información existente con base en el inventario
+- `[ ]` Documentar en "Comentarios adicionales" cualquier variable no documentada o discrepancia encontrada
 
 ### Tareas específicas — Anonimización de Cursadas
 
 > Dependencia: requiere que Nicolas Camacho haya generado y compartido `LLAVE_ID_UNAL_FCE.csv`.
 
 - `[ ]` Esperar confirmación de Nicolas Camacho de que la llave está disponible
-- `[ ]` Una vez disponible la llave, revisar la estructura de `1_LimpiezaDatos/02_inventario_cursadas.do` para entender el patrón que seguirá el do-file de anonimización
-- `[ ]` Si la llave está disponible esta semana: crear `1_LimpiezaDatos/08_anonimizar_cursadas.do` siguiendo el patrón del workplan, hacer **commit y push**
+- `[ ]` Si la llave está disponible esta semana: escribir tu propio script `1_LimpiezaDatos/08_anonimizar_cursadas.[ext]`, hacer **commit y push**
 
 ---
 
@@ -53,8 +80,12 @@
 
 | Archivo | Acción | Observación |
 |---|---|---|
-| `00_configuracion.do` | Modificado | Agregar bloque de rutas para tu PC |
-| `1_LimpiezaDatos/08_anonimizar_cursadas.do` | Crear | Solo si la llave está disponible esta semana |
+| `00_configuracion.do` / `00_config.R` / `00_config.py` | Modificado | Agregar bloque de rutas para tu PC |
+| `EX_Cursadas_JJ.[ext]` | Creado | Script de exploración inicial |
+| `[tu_script_inventario_JJ].[ext]` | Creado | Script de inventario propio |
+| `[tu_script_master_personas_JJ].[ext]` | Creado | Script que genera MASTER_PERSONAS_CURSADAS_PII |
+| `DatosArmonizados/keys/MASTER_PERSONAS_CURSADAS_PII.csv` | Creado | PII confidencial — solo en Drive, nunca a GitHub |
+| `1_LimpiezaDatos/08_anonimizar_cursadas.[ext]` | Creado | Solo si la llave está disponible esta semana |
 
 ---
 
@@ -76,13 +107,17 @@
 
 **Campo de ID personal en Cursadas:** (completar — ej. "Se llama `correo_unal`, igual que en Matriculados")
 
-**Variables identificadas en Cursadas:** (completar — pegar lista del log del inventario)
+**Variables identificadas en Cursadas:** (completar — pegar lista del inventario)
 
-**¿Escala de calificaciones es 0–5 en todos los archivos?** (completar — el inventario reporta automáticamente las variables fuera de rango)
+**¿Escala de calificaciones es 0–5 en todos los archivos?** (completar — Sí / No; si No, detallar qué archivos tienen valores fuera de rango)
 
-**¿Cambian nombres de variables entre años?** (completar — el inventario reporta inconsistencias automáticamente)
+**¿Cambian nombres de variables entre años?** (completar — Sí / No; si Sí, detallar)
 
 **Clave única de observación en Cursadas:** (completar — ej. "Ninguna variable individual es clave única; la clave compuesta es (`correo_unal`, `cod_asignatura`, `grupo`)")
+
+**Número de personas únicas en MASTER_PERSONAS_CURSADAS_PII:** (completar)
+
+**Discrepancias o variables no documentadas en `Diccionario_Cursadas.xlsx`:** (completar)
 
 ---
 
@@ -92,7 +127,9 @@
 |---|---|
 | Lectura de documentación y configuración | |
 | Escritura de script de exploración (`EX_Cursadas_JJ`) | |
-| Configurar `00_configuracion.do` | |
-| Revisar y ejecutar `inventario_cursadas.do` | |
-| Escritura de `08_anonimizar_cursadas.do` (si aplica) | |
+| Configurar archivo de rutas | |
+| Escritura y ejecución de script de inventario propio | |
+| Escritura de script Master Personas Cursadas PII | |
+| Completar `Diccionario_Cursadas.xlsx` | |
+| Escritura de `08_anonimizar_cursadas.[ext]` (si aplica) | |
 | **Total** | |

@@ -7,6 +7,20 @@
 
 ---
 
+## Reglas del proyecto
+
+> Ver [RULES_RA.md](../RULES_RA.md) para la versión completa.
+
+**R1:** Hacer commit y push al terminar cada script.
+**R2:** Actualizar este reporte cuando termines, avances o bloquees una tarea (`[ ]` → `[x]`, `[-]`, o `[!]`).
+**R3:** No subir datos a GitHub (`.csv`, `.xlsx`, `.zip`).
+**R4:** Un script por tarea — no combinar fases.
+**R5:** Todas las rutas en el archivo de configuración (`00_configuracion.do`, `00_config.R` o `00_config.py`). Nunca hardcodear paths.
+**R6:** `DatosOriginales/` es de solo lectura — los scripts solo leen, nunca escriben allí.
+**R7:** Documentar la semilla en todo script que use aleatoriedad.
+
+---
+
 ## Tareas asignadas esta semana
 
 ### Tarea inicial — Script de exploración propio
@@ -27,29 +41,45 @@
 
 ### Tareas específicas — Inventario de Matriculados
 
-> El do-file `inventario_matriculados.do` fue generado por Claude. Tu tarea es revisarlo, entenderlo y ejecutarlo.
+> El script `1_LimpiezaDatos/02_inventario_matriculados.do` es un **script de referencia** generado previamente. No estás obligado a ejecutarlo — escribe tu propio script de inventario en el lenguaje de tu preferencia (R, Python o Stata).
 
-- `[ ]` Leer y entender `1_LimpiezaDatos/02_inventario_matriculados.do` antes de ejecutarlo
-- `[ ]` Ejecutar `inventario_matriculados.do` y revisar el log generado en `logs/`
+- `[ ]` Escribir tu propio script de inventario para Matriculados
+- `[ ]` El script debe: abrir cada archivo, listar variables y tipos, contar missings, comparar encabezados entre años, reportar N observaciones por archivo
 - `[ ]` Documentar en "Comentarios adicionales": nombre exacto del campo de ID personal, lista de variables, si los nombres cambian entre años
-- `[ ]` Identificar la(s) variable(s) que identifican de forma única una observación en Matriculados y documentarlo en "Comentarios adicionales"
-- `[ ]` Hacer **commit y push** del log generado (si no está excluido por `.gitignore`)
+- `[ ]` Identificar la(s) variable(s) que identifican de forma única una observación en Matriculados
+- `[ ]` Hacer **commit y push** del script de inventario
+
+### Tareas específicas — Master Dataset de Personas (Matriculados)
+
+- `[ ]` A partir del inventario, identificar las variables con datos personales (nombre, correo, cédula)
+- `[ ]` Escribir un script que extraiga personas únicas de todos los archivos Matriculados
+- `[ ]` Guardar como `DatosArmonizados/keys/MASTER_PERSONAS_MATRICULADOS_PII.csv` (solo en Drive, nunca a GitHub)
+- `[ ]` Reportar el número de personas únicas en "Comentarios adicionales"
+- `[ ]` Hacer **commit y push** del script
+
+### Tareas específicas — Diccionario de variables
+
+- `[ ]` Abrir `Diccionarios/Dicionario_Matriculados.xlsx` en Drive
+- `[ ]` Completar las filas faltantes y verificar la información existente con base en el inventario
+- `[ ]` Documentar en "Comentarios adicionales" cualquier variable no documentada o discrepancia encontrada
 
 ### Tareas específicas — Llave de anonimización
 
-> El do-file `01_crear_llave_idunal.do` fue generado por Claude. Debes revisarlo y ajustar el placeholder antes de ejecutarlo.
+> **Prerequisito:** esta tarea depende de que el PI o Data Scientist haya consolidado todos los `MASTER_PERSONAS_[MODULO]_PII.csv` en `MASTER_PERSONAS_PII.csv`. Esperar confirmación antes de proceder.
 
-- `[ ]` Leer y entender `1_LimpiezaDatos/01_crear_llave_idunal.do`
-- `[ ]` Actualizar el placeholder `VAR_ID_PERSONAL` (línea `local var_id`) con el nombre real encontrado en el inventario
-- `[ ]` Ejecutar `01_crear_llave_idunal.do` y verificar que:
-  - El número de estudiantes únicos es razonable
-  - No hay duplicados en `id_unal`
-  - El archivo `LLAVE_ID_UNAL_FCE.csv` fue creado en `DatosArmonizados/keys/`
-- `[ ]` Reportar el número total de estudiantes únicos en la llave
-- `[ ]` Notificar al equipo (PI/CoPI y demás RAs) que la llave está disponible
-- `[ ]` Hacer **commit y push** del do-file actualizado
+> El script `1_LimpiezaDatos/01_crear_llave_idunal.do` es un **script de referencia**. Escribe tu propio script de generación de llave en el lenguaje de tu preferencia.
 
-> **Nota:** la llave es prerequisito para todos los demás RAs. Priorizar esta tarea.
+- `[ ]` Esperar confirmación del PI/Data Scientist de que `MASTER_PERSONAS_PII.csv` está disponible
+- `[ ]` Escribir un script que:
+  - Lea `DatosArmonizados/keys/MASTER_PERSONAS_PII.csv`
+  - Genere `id_unal` mediante permutación aleatoria con semilla `20260223`, formato `UNAL000001`
+  - Guarde el crosswalk como `LLAVE_ID_UNAL_FCE.csv` en `DatosArmonizados/keys/`
+- `[ ]` Verificar que no hay duplicados en `id_unal` y que todos los registros tienen llave asignada
+- `[ ]` Reportar el número total de personas únicas en la llave
+- `[ ]` Notificar al equipo (PI/CoPI y demás RAs) que `LLAVE_ID_UNAL_FCE.csv` está disponible
+- `[ ]` Hacer **commit y push** del script
+
+> **Nota:** la llave es prerequisito para la anonimización de todos los módulos. Priorizar esta tarea una vez que `MASTER_PERSONAS_PII.csv` esté listo.
 
 ---
 
@@ -57,8 +87,12 @@
 
 | Archivo | Acción | Observación |
 |---|---|---|
-| `00_configuracion.do` | Modificado | Agregar bloque de rutas para tu PC |
-| `1_LimpiezaDatos/01_crear_llave_idunal.do` | Modificado | Actualizar `VAR_ID_PERSONAL` con nombre real |
+| `00_configuracion.do` / `00_config.R` / `00_config.py` | Modificado | Agregar bloque de rutas para tu PC |
+| `EX_Matriculados_NC.[ext]` | Creado | Script de exploración inicial |
+| `[tu_script_inventario_NC].[ext]` | Creado | Script de inventario propio |
+| `[tu_script_master_personas_NC].[ext]` | Creado | Script que genera MASTER_PERSONAS_MATRICULADOS_PII |
+| `DatosArmonizados/keys/MASTER_PERSONAS_MATRICULADOS_PII.csv` | Creado | PII confidencial — solo en Drive, nunca a GitHub |
+| `[tu_script_llave_NC].[ext]` | Creado | Script de generación de llave (solo si MASTER_PERSONAS_PII está disponible) |
 | `DatosArmonizados/keys/LLAVE_ID_UNAL_FCE.csv` | Creado | Crosswalk confidencial — solo en Drive, nunca a GitHub |
 
 ---
@@ -81,15 +115,19 @@
 
 **Campo de ID personal identificado:** (completar — ej. "El campo se llama `correo_unal` en todos los archivos")
 
-**Número de estudiantes únicos en la llave:** (completar)
-
 **¿El campo de ID cambia de nombre entre años?** (completar — Sí / No / Parcialmente; si Sí, listar qué nombres encontró)
 
-**Variables en Matriculados:** (completar — pegar la lista de variables del log del inventario)
+**Variables en Matriculados:** (completar — pegar la lista de variables del inventario)
 
 **¿Inconsistencias de variables entre archivos?** (completar — Sí / No; si Sí, detallar)
 
 **Clave única de observación en Matriculados:** (completar — ej. "La variable `correo_unal` identifica de forma única cada fila" o "La clave compuesta es (`correo_unal`, `cod_plan`)")
+
+**Número de personas únicas en MASTER_PERSONAS_MATRICULADOS_PII:** (completar)
+
+**Discrepancias o variables no documentadas en `Dicionario_Matriculados.xlsx`:** (completar)
+
+**Número total de personas en la llave (`LLAVE_ID_UNAL_FCE.csv`):** (completar — solo si la tarea se completó esta semana)
 
 ---
 
@@ -99,7 +137,9 @@
 |---|---|
 | Lectura de documentación y configuración | |
 | Escritura de script de exploración (`EX_Matriculados_NC`) | |
-| Configurar `00_configuracion.do` | |
-| Revisar y ejecutar `inventario_matriculados.do` | |
-| Revisar, ajustar y ejecutar `01_crear_llave_idunal.do` | |
+| Configurar archivo de rutas | |
+| Escritura y ejecución de script de inventario propio | |
+| Escritura de script Master Personas Matriculados PII | |
+| Completar `Dicionario_Matriculados.xlsx` | |
+| Escritura de script de generación de llave (si aplica) | |
 | **Total** | |
