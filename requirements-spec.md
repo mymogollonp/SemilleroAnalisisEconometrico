@@ -1,8 +1,9 @@
 # Requirements Specification: Armonización de Datos UNAL
 ## Semillero de Análisis Econométrico
 
-**PI:** Karoll Gomez
+**PI:** Karoll Gomez, Hernando Bayona
 **CoPI:** Monica Mogollon
+**Data Scientist:** Mauricio Hernandez
 **Date:** 2026-04-13
 **Status:** APPROVED
 
@@ -224,14 +225,16 @@ Do-files within the same processing phase share the same two-digit prefix:
 | Prefix | Phase | Description |
 |---|---|---|
 | `00` | Configuration | Path macros; one file only |
-| `01` | Phase 0 — Key generation | Anonymization crosswalk |
-| `02` | Phase 0 — Inventario | One file per dataset; all run in parallel |
-| `07–11` | Phase 1 — Anonymization | One file per dataset |
-| `12–16` | Phase 3 — Cleaning | One file per dataset (TBD) |
-| `17–18` | Phase 4 — Harmonization | IDs and periods (TBD) |
-| `19` | Phase 5 — Panel | Master panel construction (TBD) |
-| `20` | Phase 6 — QC | Quality control report (TBD) |
-| `21` | Phase 7 — Sample | Stratified sample (TBD) |
+| `01` | Phase 1 — Key generation | Anonymization crosswalk |
+| `02` | Phase 1 — Inventario | One file per dataset; all run in parallel |
+| `03` | Phase 1 — Master Personas PII | Compile unique persons with identifiers |
+| `04` | Phase 2 — Master Personas Anon | Anonymized person dataset + key variables |
+| `07–11` | Phase 5 — Anonymization | One file per dataset |
+| `12–16` | Phase 6 — Cleaning | One file per dataset (TBD) |
+| `17–18` | Phase 7 — Harmonization | IDs and periods (TBD) |
+| `19` | Phase 8 — Panel | Master panel construction (TBD) |
+| `20` | Phase 9 — QC | Quality control report (TBD) |
+| `21` | Phase 10 — Sample | Stratified sample (TBD) |
 
 ---
 
@@ -239,4 +242,4 @@ Do-files within the same processing phase share the same two-digit prefix:
 
 [x] Research Director approved: 2026-04-13
 
-*Última actualización: 2026-04-14 — Reflects actual do-file structure; adds CSV-only rule, inventario requirements (unique key identification), and do-file numbering convention*
+*Última actualización: 2026-04-17 — Added PI Hernando Bayona and Data Scientist Mauricio Hernandez; updated do-file numbering to reflect new phase structure (Master Personas PII, Master Personas Anon, Dictionary, Relational Design)*
