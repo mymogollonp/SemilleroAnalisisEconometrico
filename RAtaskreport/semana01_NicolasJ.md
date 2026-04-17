@@ -69,10 +69,14 @@
 
 ### Tareas específicas — Master Dataset de Personas (Egresados y Retirados)
 
-- `[ ]` A partir de los inventarios, identificar las variables con datos personales en cada módulo
-- `[ ]` Escribir un script que extraiga personas únicas de todos los archivos Egresados → guardar como `DatosArmonizados/keys/MASTER_PERSONAS_EGRESADOS_PII.csv`
-- `[ ]` Escribir un script que extraiga personas únicas de Retirados → guardar como `DatosArmonizados/keys/MASTER_PERSONAS_RETIRADOS_PII.csv`
-- `[ ]` Reportar el número de personas únicas en cada módulo en "Comentarios adicionales"
+- `[ ]` A partir de los inventarios, identificar las variables de: correo/email, tipo de documento, número de documento, nombre completo, sexo/género en cada módulo
+- `[ ]` Escribir un script que itere sobre **todos** los archivos Egresados y construya el Master Personas de Egresados
+- `[ ]` Escribir un script para Retirados (archivo único `Retirados_desde_2009.xlsx`) que construya el Master Personas de Retirados
+- `[ ]` En ambos scripts: armonizar nombres de variables al output canónico: `correo`, `tipo_documento`, `numero_documento`, `nombre_completo`, `sexo`
+- `[ ]` **Sexo/género**: registrar **todos los valores distintos observados por persona** — una persona puede cambiar de género entre períodos; conservar todos los pares `(correo, sexo, periodo)`, no reducir a uno
+- `[ ]` **Tipo de documento**: registrar todos los tipos encontrados (CC, CE, PA, TI, NUIP, PEP u otros); reportar cualquier código no reconocido
+- `[ ]` **Verificar formato de número de documento**: CC (6–10 dígitos numéricos), CE (alfanumérico), PA (alfanumérico), TI (10–11 dígitos); anotar registros con formato inesperado
+- `[ ]` Guardar: `DatosArmonizados/keys/MASTER_PERSONAS_EGRESADOS_PII.csv` y `MASTER_PERSONAS_RETIRADOS_PII.csv` (solo en Drive, nunca a GitHub)
 - `[ ]` Hacer **commit y push** de los scripts
 
 ### Tareas específicas — Diccionario de variables
@@ -139,6 +143,12 @@
 
 **Número de personas únicas en MASTER_PERSONAS_EGRESADOS_PII:** (completar)
 
+**Tipos de documento encontrados en Egresados:** (completar — ej. "CC: 94%, CE: 5%, PA: 1%")
+
+**Personas con más de un valor de sexo/género en Egresados:** (completar — N casos)
+
+**Registros con formato de documento inválido en Egresados:** (completar — N registros; describir el problema)
+
 **Campo de ID personal en Retirados:** (completar)
 
 **Variables identificadas en Retirados:** (completar)
@@ -150,6 +160,12 @@
 **Clave única de observación en Retirados:** (completar — ej. "`correo_unal` es clave única" o indicar clave compuesta)
 
 **Número de personas únicas en MASTER_PERSONAS_RETIRADOS_PII:** (completar)
+
+**Tipos de documento encontrados en Retirados:** (completar)
+
+**Personas con más de un valor de sexo/género en Retirados:** (completar — N casos)
+
+**Registros con formato de documento inválido en Retirados:** (completar)
 
 **Discrepancias en `Diccionario_Egresados.xlsx` o `Dicionario_Retirados.xlsx`:** (completar)
 

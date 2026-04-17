@@ -116,12 +116,32 @@ C:\Drive2023\UNAL_Docente\SemilleroAnalisisEconometrico\
 
 ### Paso 1b — Master Dataset de Personas por Módulo (con PII)
 
-Cada RA construye su propio Master Personas a partir de todos los archivos de su módulo:
+Cada RA construye su propio Master Personas iterando sobre **todos** los archivos de su módulo. El objetivo es capturar, por cada persona única, **todos los valores observados** de identificadores, tipo y número de documento, sexo/género y nombre — no tomar un único valor, sino la historia completa.
 
-1. Escribir un script de inventario propio → identificar la variable de ID personal (correo, cédula, nombre) en todos los archivos del módulo
-2. Extraer las personas únicas con sus variables PII
-3. Guardar como `DatosArmonizados/keys/MASTER_PERSONAS_[MODULO]_PII.csv` (confidencial, solo en Drive)
-4. Reportar el número de personas únicas en el reporte semanal
+#### Variables canónicas del output
+
+| Nombre canónico | Descripción | Notas de construcción |
+|---|---|---|
+| `correo` | Correo institucional (@unal.edu.co) | Llave principal de deduplicación |
+| `tipo_documento` | Tipo de ID (CC, CE, PA, TI, NUIP, PEP…) | Registrar **todos** los tipos observados para la persona |
+| `numero_documento` | Número del documento de identidad | Verificar formato (ver abajo) |
+| `nombre_completo` | Nombre tal como aparece en la fuente | Puede variar entre archivos; conservar todas las variantes |
+| `sexo` | Sexo/género tal como está registrado en la fuente | **Registrar todos los valores distintos observados** — una persona puede cambiar de género entre períodos |
+
+#### Reglas de construcción
+
+1. **Iterar sobre todos los archivos del módulo** — no trabajar solo con el más reciente.
+2. **Armonizar nombres de variables**: si la fuente usa `CORREO_UNAL`, `email`, `GENERO`, `SEXO_BIO`, etc., renombrar a los nombres canónicos antes de apilar.
+3. **Sexo/género — registrar todos los valores observados**: una persona puede aparecer con valores distintos de sexo/género en distintos semestres. Conservar todos los pares `(correo, sexo, periodo)` distintos; no reducir a un único valor. Reportar el número de personas con más de un valor observado.
+4. **Tipo de documento — registrar todos los tipos**: si una persona aparece con CC en algunos archivos y CE en otros, conservar ambos registros. Verificar que los tipos correspondan a códigos reconocidos (CC, CE, PA, TI, NUIP, PEP). Reportar cualquier código desconocido.
+5. **Verificar formato del número de documento**:
+   - `CC` (Cédula de ciudadanía): numérico, 6–10 dígitos
+   - `CE` (Cédula de extranjería): alfanumérico, puede tener prefijos de país
+   - `PA` (Pasaporte): alfanumérico, longitud variable
+   - `TI` (Tarjeta de identidad): numérico, 10–11 dígitos
+   - Anotar en el reporte semanal todo número de documento que no cumpla el formato esperado para su tipo.
+6. **Guardar como** `DatosArmonizados/keys/MASTER_PERSONAS_[MODULO]_PII.csv` (confidencial, solo en Drive — nunca a GitHub).
+7. **Reportar en el reporte semanal**: N personas únicas, distribución de tipos de documento, N personas con más de un valor de sexo/género, N documentos con formato inválido.
 
 | RA | Archivo de salida (en `DatosArmonizados/keys/`) |
 |---|---|
@@ -130,7 +150,7 @@ Cada RA construye su propio Master Personas a partir de todos los archivos de su
 | Maria Jose Cadena | `MASTER_PERSONAS_CANCELACIONES_PII.csv` |
 | Nicolas Jimenez | `MASTER_PERSONAS_EGRESADOS_PII.csv` y `MASTER_PERSONAS_RETIRADOS_PII.csv` |
 
-> **Consolidación:** una vez todos los RAs entreguen sus archivos, el PI o Data Scientist consolida en `MASTER_PERSONAS_PII.csv` antes de generar la llave.
+> **Consolidación:** una vez todos los RAs entreguen sus archivos, el PI o Data Scientist consolida en `MASTER_PERSONAS_PII.csv`. La consolidación debe resolver conflictos de tipo/número de documento y producir un registro de sexo/género por período a nivel de persona única.
 
 ### Creación de la llave de anonimización
 

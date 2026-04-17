@@ -51,10 +51,13 @@
 
 ### Tareas específicas — Master Dataset de Personas (Matriculados)
 
-- `[ ]` A partir del inventario, identificar las variables con datos personales (nombre, correo, cédula)
-- `[ ]` Escribir un script que extraiga personas únicas de todos los archivos Matriculados
+- `[ ]` A partir del inventario, identificar las variables de: correo/email, tipo de documento, número de documento, nombre completo, sexo/género
+- `[ ]` Escribir un script que itere sobre **todos** los archivos Matriculados (no solo el más reciente)
+- `[ ]` Armonizar nombres de variables en el output: usar `correo`, `tipo_documento`, `numero_documento`, `nombre_completo`, `sexo` como nombres canónicos
+- `[ ]` **Sexo/género**: registrar **todos los valores distintos observados por persona** — una persona puede cambiar de género entre períodos; conservar todos los pares `(correo, sexo, periodo)`, no reducir a uno
+- `[ ]` **Tipo de documento**: registrar todos los tipos encontrados (CC, CE, PA, TI, NUIP, PEP u otros); reportar cualquier código no reconocido
+- `[ ]` **Verificar formato de número de documento**: CC (6–10 dígitos numéricos), CE (alfanumérico), PA (alfanumérico), TI (10–11 dígitos); anotar registros con formato inesperado
 - `[ ]` Guardar como `DatosArmonizados/keys/MASTER_PERSONAS_MATRICULADOS_PII.csv` (solo en Drive, nunca a GitHub)
-- `[ ]` Reportar el número de personas únicas en "Comentarios adicionales"
 - `[ ]` Hacer **commit y push** del script
 
 ### Tareas específicas — Diccionario de variables
@@ -124,6 +127,12 @@
 **Clave única de observación en Matriculados:** (completar — ej. "La variable `correo_unal` identifica de forma única cada fila" o "La clave compuesta es (`correo_unal`, `cod_plan`)")
 
 **Número de personas únicas en MASTER_PERSONAS_MATRICULADOS_PII:** (completar)
+
+**Tipos de documento encontrados en Matriculados:** (completar — ej. "CC: 94%, CE: 5%, PA: 1%")
+
+**Personas con más de un valor de sexo/género registrado:** (completar — N casos; describir brevemente si es posible)
+
+**Registros con formato de documento inválido:** (completar — N registros; describir el problema)
 
 **Discrepancias o variables no documentadas en `Dicionario_Matriculados.xlsx`:** (completar)
 
