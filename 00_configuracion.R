@@ -3,14 +3,20 @@
 # Editar la sección correspondiente a tu máquina
 # ============================================================
   
-  local usuario = c(username)
+usuario <- Sys.info()[["user"]]
+
+if (usuario == "NicolasC") {
+  dir_datos <- "C:/TuRuta/SemilleroAnalisisEconometrico"
+  dir_code  <- "C:/TuRuta/code/SemilleroAnalisisEconometrico"
   
-  if "`usuario'" == "NicolasC" {
-    global dir_datos  "C:/TuRuta/SemilleroAnalisisEconometrico"
-    global dir_code   "C:/TuRuta/code/SemilleroAnalisisEconometrico"
-  }
-  else if "`usuario'" == "JeronimoJ" {
-    global dir_datos  "C:/TuRuta/SemilleroAnalisisEconometrico"
-    global dir_code   "C:/TuRuta/code/SemilleroAnalisisEconometrico"
-  }
+} else if (usuario == "JeronimoJ") {
+  dir_datos <- "C:/TuRuta/SemilleroAnalisisEconometrico"
+  dir_code  <- "C:/TuRuta/code/SemilleroAnalisisEconometrico"
   
+} else if (usuario == "majoc") {
+  dir_datos <- "G:/.shortcut-targets-by-id/10I6zKIZovl02Q4Q7DklodKBGjHWu6boA/SemilleroAnalisisEconometrico/DatosOriginales"
+  dir_code  <- "C:/SemilleroAnalisisEconometrico"
+  
+} else {
+  stop("Usuario no configurado. Agrega tu ruta en 00_configuracion.R")
+}
