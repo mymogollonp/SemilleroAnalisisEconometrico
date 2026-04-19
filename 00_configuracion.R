@@ -16,6 +16,10 @@ if (usuario == "NicolasC") {
 } else if (usuario == "majoc") {
   dir_datos <- "G:/.shortcut-targets-by-id/10I6zKIZovl02Q4Q7DklodKBGjHWu6boA/SemilleroAnalisisEconometrico/DatosOriginales"
   dir_code  <- "C:/SemilleroAnalisisEconometrico"
+
+} else if (usuario == "nicoj") {
+  dir_datos <- "C:/Users/nicoj/Desktop/semillerop/datos"
+  dir_code  <- "C:/Users/nicoj/Desktop/semillerop/SemilleroAnalisisEconometrico"
   
 } else {
   stop("Usuario no configurado. Agrega tu ruta en 00_configuracion.R")
