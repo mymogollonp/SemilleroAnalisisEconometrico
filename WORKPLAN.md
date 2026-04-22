@@ -102,17 +102,25 @@ C:\Drive2023\UNAL_Docente\SemilleroAnalisisEconometrico\
 - [ ] Crear `logs/.gitkeep` para versionar la carpeta vacía
 - [ ] Primer commit y push a GitHub con estructura base
 
-### Scripts de referencia para inventario
+### Scripts de referencia
 
-> Los do-files en `1_LimpiezaDatos/02_inventario_*.do` son scripts de referencia generados previamente. Los RAs **no están obligados a ejecutarlos** — cada RA debe escribir su propio script de inventario en el lenguaje de su preferencia (Stata, R o Python).
+> `1_LimpiezaDatos/Example_Inventario.R` y `1_LimpiezaDatos/Example_masterpersonas.R` son scripts de referencia en R. Cada RA adapta estos ejemplos a su módulo y los entrega con su nombre y módulo: `01_Inventario_[modulo]_[iniciales].R` y `02_masterpersonas_[modulo]_[iniciales].R`.
 
-| Script de referencia (Stata) | Responsable | Descripción |
-|---|---|---|
-| `1_LimpiezaDatos/02_inventario_matriculados.do` | Nicolas Camacho | Referencia: perfila Matriculados; identifica campo de ID, consistencia de variables, clave única |
-| `1_LimpiezaDatos/02_inventario_cursadas.do` | Jeronimo Jimenez | Referencia: perfila Cursadas; verifica escala 0–5; identifica clave única |
-| `1_LimpiezaDatos/02_inventario_cancelaciones.do` | Maria Jose Cadena | Referencia: perfila Cancelaciones; identifica formato de fecha y clave única |
-| `1_LimpiezaDatos/02_inventario_egresados.do` | Nicolas Jimenez | Referencia: perfila Egresados; identifica formato de fecha de grado y clave única |
-| `1_LimpiezaDatos/02_inventario_retirados.do` | Nicolas Jimenez | Referencia: perfila Retirados_desde_2009.xlsx; identifica clave única |
+| Script de referencia | Tarea |
+|---|---|
+| `1_LimpiezaDatos/Example_Inventario.R` | Cargar todos los archivos del módulo; estructura general; duplicados; consistencia de variables entre semestres; clave única de observación |
+| `1_LimpiezaDatos/Example_masterpersonas.R` | Master Dataset de Personas por módulo (con PII): extrae y armoniza correo, tipo/número de documento, nombre, sexo; registra historia completa de sexo/género; valida formatos |
+
+### Productos esperados — Semana 1
+
+Cada RA entrega **dos scripts** en `1_LimpiezaDatos/` con commit y push:
+
+| RA | Script 1 — Inventario | Script 2 — Master Personas | Output en Drive (keys/) |
+|---|---|---|---|
+| Nicolas Camacho | `01_Inventario_Matriculados_NC.[ext]` | `02_masterpersonas_Matriculados_NC.[ext]` | `MASTER_PERSONAS_MATRICULADOS_PII.csv` |
+| Jeronimo Jimenez | `01_Inventario_Cursadas_JJ.[ext]` | `02_masterpersonas_Cursadas_JJ.[ext]` | `MASTER_PERSONAS_CURSADAS_PII.csv` |
+| Maria Jose Cadena | `01_Inventario_Cancelaciones_MJC.[ext]` | `02_masterpersonas_Cancelaciones_MJC.[ext]` | `MASTER_PERSONAS_CANCELACIONES_PII.csv` |
+| Nicolas Jimenez | `01_Inventario_Egresados_NJ.[ext]` + `01_Inventario_Retirados_NJ.[ext]` | `02_masterpersonas_Egresados_NJ.[ext]` + `02_masterpersonas_Retirados_NJ.[ext]` | `MASTER_PERSONAS_EGRESADOS_PII.csv` + `MASTER_PERSONAS_RETIRADOS_PII.csv` |
 
 ### Paso 1b — Master Dataset de Personas por Módulo (con PII)
 
@@ -154,7 +162,6 @@ Cada RA construye su propio Master Personas iterando sobre **todos** los archivo
 
 ### Creación de la llave de anonimización
 
-**Script de referencia (Stata):** `1_LimpiezaDatos/01_crear_llave_idunal.do`
 **Responsable:** Nicolas Camacho (una vez que el PI/Data Scientist haya consolidado `MASTER_PERSONAS_PII.csv`)
 **Salida:** `DatosArmonizados/keys/LLAVE_ID_UNAL_FCE.csv` (confidencial)
 
