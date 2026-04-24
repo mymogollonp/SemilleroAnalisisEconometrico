@@ -25,11 +25,14 @@ R6: solo lectura sobre DatosOriginales/.
 R3: no genera archivos CSV ni XLSX (solo imprime en consola).
 """
 
+import sys
 from pathlib import Path
-
 import pandas as pd
 
-DIR_DATOS = Path("G:/.shortcut-targets-by-id/10I6zKIZovl02Q4Q7DklodKBGjHWu6boA/SemilleroAnalisisEconometrico")
+# Sube un nivel desde 1_LimpiezaDatos/ hasta la raíz del proyecto
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from config import DIR_DATOS
 
 # ---------------------------------------------------------------------------
 # Constantes — ajustar si cambian los nombres reales de columnas
@@ -57,6 +60,9 @@ LLAVES_CANDIDATAS: dict[str, list[str]] = {
     f"{COL_DOCUMENTO}+{COL_PERIODO}":                [COL_DOCUMENTO, COL_PERIODO],
     f"{COL_CORREO}+{COL_PLAN}+{COL_PERIODO}":        [COL_CORREO,    COL_PLAN, COL_PERIODO],
     f"{COL_DOCUMENTO}+{COL_PLAN}+{COL_PERIODO}":     [COL_DOCUMENTO, COL_PLAN, COL_PERIODO],
+    f"{COL_CORREO}+{COL_PLAN}+{COL_PERIODO}+COD_ASIGNATURA": [
+        COL_CORREO, COL_PLAN, COL_PERIODO, "COD_ASIGNATURA"
+    ],
 }
 
 # Llave final tentativa (actualizar con el resultado del inventario)
