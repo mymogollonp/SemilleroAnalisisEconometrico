@@ -135,10 +135,10 @@ Documentar en "Comentarios adicionales": campo de ID personal, lista de variable
 
 ## Comentarios adicionales
 
-**Campo de ID personal en Egresados:** (completar)
+**Campo de ID personal en Egresados:** 
 Tanto correo como numero de documento
 
-**Lista de variables — Egresados:** (completar)
+**Lista de variables — Egresados:** 
 <details>
 <summary>Ver variables</summary>
 - `COD_SEDE`
@@ -219,20 +219,20 @@ Tanto correo como numero de documento
 - `GENERO`
 </details>
   
-**Formato de fecha de grado:** (completar — ejemplos de valores reales)
+**Formato de fecha de grado:** 
 En Excel se observa como d-mmm-aa, por ejemplo 5-sep-14. En Python se lee como fecha tipo Timestamp/datetime, representada como YYYY-MM-DD o YYYY-MM-DD 00:00:00.
 
-**Variables que cambian entre semestres — Egresados:** (completar)
+**Variables que cambian entre semestres — Egresados:** 
 Variables que cambian entre semestres — Egresados:
 Se encontraron 3 estructuras de columnas. Los cambios principales ocurren a partir de 2022-1S con la incorporación de T_DOCUMENTO, y a partir de 2024-2S con el cambio de variables personales antiguas (NOMBRES, PRIMER_APELLIDO, SEGUNDO_APELLIDO, SEXO) por variables legales/nuevas (NOMBRES_LEGAL, APELLIDO1_LEGAL, APELLIDO2_LEGAL, SEXO_LEGAL, GENERO). También se observa CONVENIO_PLAN.1 (columna repetida, la columna CONVENIO_PLAN siempre se conserva) en la estructura inicial, que no aparece en las posteriores.
 
-**Clave única — Egresados:** (completar)
+**Clave única — Egresados:** 
 La combinación EMAIL + COD_PLAN presenta un nivel de unicidad del 95%, por lo que no puede considerarse una llave única estricta. El 5% restante de los casos corresponde principalmente a registros donde varían variables asociadas al trabajo de grado.
 
-**Campo de ID personal en Retirados:** (completar)
+**Campo de ID personal en Retirados:** 
 Documento, excepto por 1 persona que registra 2 documentos.
 
-**Lista de variables — Retirados:** (completar)
+**Lista de variables — Retirados:** 
 <details>
 <summary>Ver variables</summary>
 - `COD_SEDE`
@@ -295,22 +295,22 @@ Documento, excepto por 1 persona que registra 2 documentos.
 - `COD_MUNICIPIO_COLEGIO`
 - `MUNICIPIO_COLEGIO`
 </details>
-**Clave única — Retirados:** (completar)
+**Clave única — Retirados:** 
 CORREO + COD_PLAN + PERIODO_BLOQUEO + COD_BLOQUEO
 
-**Personas únicas en MASTER_PERSONAS_EGRESADOS_PII:** (completar)
+**Personas únicas en MASTER_PERSONAS_EGRESADOS_PII:** 
 74.949 identificadores únicos, usando `correo` como identificador principal y `numero_documento` como respaldo. El master final contiene 74.953 filas porque conserva algunos registros múltiples asociados a cambios documentales válidos.
 
-**Personas únicas en MASTER_PERSONAS_RETIRADOS_PII:** (completar)
+**Personas únicas en MASTER_PERSONAS_RETIRADOS_PII:** 
 41394
 
-**Tipos de documento encontrados (Egresados):** (completar)
+**Tipos de documento encontrados (Egresados):** 
 CC, TI, CE, PA, OTRO, NA.
 
-**Tipos de documento encontrados (Retirados):** (completar)
+**Tipos de documento encontrados (Retirados):** 
 No existe tipo_documento en la base original de Retirados, se deja como NA.
 
-**Personas con más de un valor de sexo/género:** (completar — N casos Egresados / N casos Retirados)
+**Personas con más de un valor de sexo/género:** 
 0 casos egresados
 0 casos retirados
 
