@@ -31,10 +31,10 @@ else if "`usuario'" == "JeronimoJ" {
     global dir_datos  "C:/COMPLETAR/SemilleroAnalisisEconometrico"
     global dir_code   "C:/COMPLETAR/code/SemilleroAnalisisEconometrico"
 }
-else if "`usuario'" == "MariaJoseC" {
+else if "`usuario'" == "majoc" {
     * ⚠ Reemplazar con tus rutas reales
-    global dir_datos  "C:/COMPLETAR/SemilleroAnalisisEconometrico"
-    global dir_code   "C:/COMPLETAR/code/SemilleroAnalisisEconometrico"
+    global dir_datos  "G:/.shortcut-targets-by-id/10I6zKIZovl02Q4Q7DklodKBGjHWu6boA/SemilleroAnalisisEconometrico/DatosOriginales"
+    global dir_code   "C:/SemilleroAnalisisEconometrico"
 }
 else if "`usuario'" == "NicolasJ" {
     * ⚠ Reemplazar con tus rutas reales
