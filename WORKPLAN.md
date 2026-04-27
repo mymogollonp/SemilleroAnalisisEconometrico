@@ -269,16 +269,16 @@ Los diccionarios ya fueron creados por Mauricio Hernandez. Cada RA debe **comple
 
 ## Fase 3 — Limpieza por Dataset
 
-Un do-file por fuente en `2_LimpiezaDatos/`. Cada uno lee los CSVs anonimizados de `1_DatosAnonimizados/`, aplica la limpieza y guarda un CSV consolidado en `DatosArmonizados/2_DatosLimpios/`.
-**Regla:** nunca modificar los archivos de `1_DatosAnonimizados/`.
+Un script por fuente en `1_LimpiezaDatos/`. Cada uno lee los archivos originales de `DatosOriginales/`, aplica la limpieza y guarda un CSV limpio **por semestre** en `DatosArmonizados/2_DatosLimpios/[modulo]/`.
+**Regla:** nunca modificar los archivos de `DatosOriginales/`.
 
-| Script de referencia (Stata) | Tarea central | RA |
-|---|---|---|
-| `2_LimpiezaDatos/08_limpiar_matriculados.do` | Estandarizar variables de programa, período, estrato, PBM; detectar duplicados | Nicolas Camacho |
-| `2_LimpiezaDatos/09_limpiar_cursadas.do` | Estandarizar código de asignatura, calificación, créditos; verificar escala 0–5 | Jeronimo Jimenez |
-| `2_LimpiezaDatos/10_limpiar_cancelaciones.do` | Fecha de cancelación → período `YYYY-NS`; cruce con matriculados | Maria Jose Cadena |
-| `2_LimpiezaDatos/11_limpiar_egresados.do` | Fecha de grado → período; cruce con matriculados para validar | Nicolas Jimenez |
-| `2_LimpiezaDatos/12_limpiar_retirados.do` | Período de retiro; tipo de retiro; cruce con estados académicos | Nicolas Jimenez |
+| RA | Tarea central | Script | Output en `DatosArmonizados/2_DatosLimpios/` |
+|---|---|---|---|
+| Nicolas Camacho | Estandarizar variables de programa, período, estrato, PBM; detectar duplicados | `03_limpieza_Matriculados_NC.[ext]` | `Matriculado/Matriculados_[YYYY-NS]_limpio.csv` — un CSV por semestre |
+| Jeronimo Jimenez | Estandarizar código de asignatura, calificación, créditos; verificar escala 0–5 | `04_limpieza_Cursadas_JJ.[ext]` | `Cursadas/Cursadas_[YYYY-NS]_limpio.csv` — un CSV por semestre |
+| Maria Jose Cadena | Estandarizar fecha de cancelación → período `YYYY-NS`; cruce con matriculados | `03_limpieza_Cancelaciones_MJC.[ext]` | `Cancelaciones/Cancelaciones_[YYYY-NS]_limpio.csv` — un CSV por semestre |
+| Nicolas Jimenez | Estandarizar fecha de grado → período; cruce con matriculados para validar | `03_limpieza_Egresados_NJ.[ext]` | `Egresados/Egresados_[YYYY-NS]_limpio.csv` — un CSV por semestre |
+| Nicolas Jimenez | Estandarizar período de retiro; tipo de retiro | `03_limpieza_Retirados_NJ.[ext]` | `Retirados/Retirados_limpio.csv` — archivo único |
 
 ---
 
