@@ -208,16 +208,6 @@ Una vez todos los módulos estén disponibles, Jeronimo Jimenez consolida los ci
 5. Guardar como `MASTER_PERSONAS_PII.csv`
 6. Reportar: N personas únicas totales, N personas que aparecen en más de un módulo, N conflictos de tipo/número de documento resueltos
 
-### Creación de la llave de anonimización
-
-**Responsable:** Nicolas Camacho (una vez que Jeronimo Jimenez haya entregado `MASTER_PERSONAS_PII.csv`)
-**Salida:** `DatosArmonizados/keys/LLAVE_ID_UNAL_FCE.csv` (confidencial)
-
-1. Leer `MASTER_PERSONAS_PII.csv`
-2. Generar `id_unal` mediante permutación aleatoria con semilla `20260223`, formato `UNAL000001`
-3. Guardar crosswalk `correo ↔ id_unal` como `LLAVE_ID_UNAL_FCE.csv`
-4. Notificar al equipo que la llave está disponible
-
 > **Decisión de diseño:** se genera `id_unal` fresco para este proyecto. No se intenta cruzar con la llave heredada de `BASE_DATOS_REGISTRO_UNAL_BOGOTA`.
 
 ---
