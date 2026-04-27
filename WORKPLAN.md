@@ -131,25 +131,58 @@ Cada RA construye su propio Master Personas iterando sobre **todos** los archivo
 | Nombre canónico | Descripción | Notas de construcción |
 |---|---|---|
 | `correo` | Correo institucional (@unal.edu.co) | Llave principal de deduplicación |
-| `tipo_documento` | Tipo de ID (CC, CE, PA, TI, NUIP, PEP…) | Registrar **todos** los tipos observados para la persona |
-| `numero_documento` | Número del documento de identidad | Verificar formato (ver abajo) |
-| `nombre_completo` | Nombre tal como aparece en la fuente | Puede variar entre archivos; conservar todas las variantes |
-| `sexo` | Sexo/género tal como está registrado en la fuente | **Registrar todos los valores distintos observados** — una persona puede cambiar de género entre períodos |
+| `tipo_documento` | Tipo de ID — valores canónicos: CC, CE, PA, TI, PEP, OTRO | Homogeneizar desde los valores originales (ver tabla de mapeo abajo). Si una persona registra más de un tipo a lo largo de los semestres, crear columnas adicionales: `tipo_documento1`, `tipo_documento2`, etc. |
+| `numero_documento` | Número del documento de identidad | Verificar longitud válida por tipo (ver tabla abajo). Si cambia entre semestres, crear `numero_documento1`, `numero_documento2`, etc. |
+| `nombre_completo` | Nombre del estudiante | Convertir a **mayúsculas** y eliminar caracteres especiales (tildes, ñ → N, etc.). Si varía entre archivos, conservar todas las variantes. |
+| `fecha_nacimiento` | Fecha de nacimiento (si existe en la fuente) | Registrar en formato `YYYY-MM-DD`. Si no existe en ningún archivo del módulo, omitir la columna. |
+| `sexo` | Sexo/género — valores canónicos: M, F, X, NA | Homogeneizar desde los valores originales (ver tabla de mapeo abajo). Si una persona registra más de un valor a lo largo de los semestres, crear columnas adicionales: `sexo1`, `sexo2`, etc. |
+
+#### Mapeo de valores — `tipo_documento`
+
+Homogeneizar el campo original al valor canónico antes de guardar:
+
+| Valor original (en mayúsculas) | Valor canónico |
+|---|---|
+| `CEDULA`, `CEDULA DE CIUDADANIA` | `CC` |
+| `TARJETA DE IDENTIDAD` | `TI` |
+| `CEDULA DE EXTRANJERIA` | `CE` |
+| `PASAPORTE` | `PA` |
+| `PERMISO ESPECIAL DE PERMANENCIA` | `PEP` |
+| `PERMISO DE RESIDENCIA Y TRABAJO`, `OTROS` | `OTRO` |
+
+#### Mapeo de valores — `sexo`
+
+Homogeneizar el campo original al valor canónico antes de guardar:
+
+| Valor original (en mayúsculas) | Valor canónico |
+|---|---|
+| `H`, `MASCULINO` | `M` |
+| `D`, `FEMENINO`, `MUJER` | `F` |
+| `X`, `NO BINARIO` | `X` |
+| `NO DISPONIBLE`, vacío | `NA` (valor nulo) |
+
+#### Longitud válida del número de documento
+
+| Tipo | Formato esperado |
+|---|---|
+| `CC` | Numérico, 6–10 dígitos |
+| `TI` | Numérico, 10–11 dígitos |
+| `CE` | Alfanumérico, longitud variable |
+| `PA` | Alfanumérico, longitud variable |
+
+Anotar en el reporte semanal todo número de documento que no cumpla el formato esperado para su tipo.
 
 #### Reglas de construcción
 
 1. **Iterar sobre todos los archivos del módulo** — no trabajar solo con el más reciente.
 2. **Armonizar nombres de variables**: si la fuente usa `CORREO_UNAL`, `email`, `GENERO`, `SEXO_BIO`, etc., renombrar a los nombres canónicos antes de apilar.
-3. **Sexo/género — registrar todos los valores observados**: una persona puede aparecer con valores distintos de sexo/género en distintos semestres. Conservar todos los pares `(correo, sexo, periodo)` distintos; no reducir a un único valor. Reportar el número de personas con más de un valor observado.
-4. **Tipo de documento — registrar todos los tipos**: si una persona aparece con CC en algunos archivos y CE en otros, conservar ambos registros. Verificar que los tipos correspondan a códigos reconocidos (CC, CE, PA, TI, NUIP, PEP). Reportar cualquier código desconocido.
-5. **Verificar formato del número de documento**:
-   - `CC` (Cédula de ciudadanía): numérico, 6–10 dígitos
-   - `CE` (Cédula de extranjería): alfanumérico, puede tener prefijos de país
-   - `PA` (Pasaporte): alfanumérico, longitud variable
-   - `TI` (Tarjeta de identidad): numérico, 10–11 dígitos
-   - Anotar en el reporte semanal todo número de documento que no cumpla el formato esperado para su tipo.
-6. **Guardar como** `DatosArmonizados/keys/MASTER_PERSONAS_[MODULO]_PII.csv` (confidencial, solo en Drive — nunca a GitHub).
-7. **Reportar en el reporte semanal**: N personas únicas, distribución de tipos de documento, N personas con más de un valor de sexo/género, N documentos con formato inválido.
+3. **Columnas múltiples para variables que cambian**: si una persona registra distintos valores de `tipo_documento`, `numero_documento` o `sexo` en diferentes semestres, no colapsar a un único valor — crear columnas adicionales numeradas (`tipo_documento1`, `tipo_documento2`, `sexo1`, `sexo2`, etc.) ordenadas cronológicamente. Reportar el número de personas con más de un valor observado.
+4. **Homogeneizar `tipo_documento`** usando la tabla de mapeo antes de guardar.
+5. **Homogeneizar `sexo`** usando la tabla de mapeo antes de guardar.
+6. **Estandarizar `nombre_completo`**: convertir a mayúsculas y eliminar caracteres especiales (reemplazar tildes y ñ por sus equivalentes sin acento).
+7. **Verificar longitud del número de documento** según la tabla de longitudes válidas.
+8. **Guardar como** `DatosArmonizados/keys/MASTER_PERSONAS_[MODULO]_PII.csv` (confidencial, solo en Drive — nunca a GitHub).
+9. **Reportar en el reporte semanal**: N personas únicas, distribución de tipos de documento, N personas con más de un valor de sexo/género, N documentos con formato inválido.
 
 | RA | Archivo de salida (en `DatosArmonizados/keys/`) |
 |---|---|
@@ -158,16 +191,31 @@ Cada RA construye su propio Master Personas iterando sobre **todos** los archivo
 | Maria Jose Cadena | `MASTER_PERSONAS_CANCELACIONES_PII.csv` |
 | Nicolas Jimenez | `MASTER_PERSONAS_EGRESADOS_PII.csv` y `MASTER_PERSONAS_RETIRADOS_PII.csv` |
 
-> **Consolidación:** una vez todos los RAs entreguen sus archivos, el PI o Data Scientist consolida en `MASTER_PERSONAS_PII.csv`. La consolidación debe resolver conflictos de tipo/número de documento y producir un registro de sexo/género por período a nivel de persona única.
+---
+
+### Paso 1c — Consolidación del Master Dataset de Personas (con PII)
+
+**Responsable:** Jeronimo Jimenez
+**Prerequisito:** todos los RAs han entregado su `MASTER_PERSONAS_[MODULO]_PII.csv`
+**Salida:** `DatosArmonizados/keys/MASTER_PERSONAS_PII.csv` (confidencial, solo en Drive)
+
+Una vez todos los módulos estén disponibles, Jeronimo Jimenez consolida los cinco archivos en una única base maestra de personas:
+
+1. Cargar los cinco archivos: Matriculados, Cursadas, Cancelaciones, Egresados, Retirados
+2. Apilar (union) todas las filas usando los nombres canónicos como columnas comunes
+3. Deduplicar por `correo` — conservar todas las variantes de tipo/número de documento, nombre y sexo tal como fueron registradas por módulo
+4. Resolver conflictos: si el mismo correo tiene valores contradictorios en distintos módulos, crear columnas numeradas (`tipo_documento1`, `tipo_documento2`, etc.) en lugar de colapsar
+5. Guardar como `MASTER_PERSONAS_PII.csv`
+6. Reportar: N personas únicas totales, N personas que aparecen en más de un módulo, N conflictos de tipo/número de documento resueltos
 
 ### Creación de la llave de anonimización
 
-**Responsable:** Nicolas Camacho (una vez que el PI/Data Scientist haya consolidado `MASTER_PERSONAS_PII.csv`)
+**Responsable:** Nicolas Camacho (una vez que Jeronimo Jimenez haya entregado `MASTER_PERSONAS_PII.csv`)
 **Salida:** `DatosArmonizados/keys/LLAVE_ID_UNAL_FCE.csv` (confidencial)
 
-1. Leer `MASTER_PERSONAS_PII.csv` (archivo consolidado — prerequisito: todos los RAs deben haber entregado su MASTER_PERSONAS_[MODULO]_PII.csv)
+1. Leer `MASTER_PERSONAS_PII.csv`
 2. Generar `id_unal` mediante permutación aleatoria con semilla `20260223`, formato `UNAL000001`
-3. Guardar crosswalk `id_real ↔ id_unal` como `LLAVE_ID_UNAL_FCE.csv`
+3. Guardar crosswalk `correo ↔ id_unal` como `LLAVE_ID_UNAL_FCE.csv`
 4. Notificar al equipo que la llave está disponible
 
 > **Decisión de diseño:** se genera `id_unal` fresco para este proyecto. No se intenta cruzar con la llave heredada de `BASE_DATOS_REGISTRO_UNAL_BOGOTA`.
