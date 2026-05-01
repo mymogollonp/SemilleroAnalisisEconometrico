@@ -149,10 +149,9 @@ def combinar_nombre_completo(df: pd.DataFrame) -> pd.Series:
         + " "
         + ap2.fillna("")
     )
-
     nombre = nombre.str.replace(r"\s+", " ", regex=True).str.strip()
 
-    return nombre.replace({"": pd.NA})
+    return nombre.str.upper().replace({"": pd.NA})
 
 
 def armonizar_periodo(df: pd.DataFrame) -> pd.Series:
@@ -182,6 +181,9 @@ def armonizar_pii_egresados(
     genero_raw = obtener_serie(df, "GENERO")
     sexo = armonizar_sexo(sexo_raw, genero_raw)
 
+    fecha_nacimiento = obtener_serie(df, "FECHA_NACIMIENTO")
+    fecha_nacimiento = pd.to_datetime(fecha_nacimiento, errors="coerce")
+
     return pd.DataFrame(
         {
             "correo": correo,
@@ -193,6 +195,7 @@ def armonizar_pii_egresados(
             "sexo_raw": sexo_raw,
             "genero_raw": genero_raw,
             "periodo": periodo,
+            "fecha_nacimiento": fecha_nacimiento,
             "archivo_origen": archivo_origen,
         }
     )
@@ -265,6 +268,7 @@ def diagnosticar_repeticiones_master(
         "sexo_raw",
         "genero_raw",
         "periodo",
+        "fecha_nacimiento",
     ]
 
     diagnostico = (
@@ -367,16 +371,71 @@ def construir_master_personas(all_pii: pd.DataFrame) -> pd.DataFrame:
             subset=[
                 "correo",
                 "tipo_documento",
-                "numero_documento",
-                "sexo",
             ],
-            keep="first",
+            keep="last",
         )
         .reset_index(drop=True)
     )
 
 
+
+# -------------------------
+# Detectar conflictos tipo_documento
+# -------------------------
+
+def consolidar_tipos_documento(master: pd.DataFrame) -> pd.DataFrame:
+    df = master.copy()
+
+    df["id_persona"] = (
+        df["correo"].fillna("SIN_CORREO")
+        + "||"
+        + df["numero_documento"].fillna("SIN_DOCUMENTO")
+    )
+
+    tipos_por_persona = (
+        df.dropna(subset=["tipo_documento"])
+        .groupby("id_persona")["tipo_documento"]
+        .agg(lambda x: sorted(set(x)))
+    )
+
+    tipos_df = tipos_por_persona.apply(
+        lambda x: pd.Series(x[:2])
+    ).rename(columns={0: "tipo_documento1", 1: "tipo_documento2"})
+
+    df = df.merge(tipos_df, left_on="id_persona", right_index=True, how="left")
+
+    return df.drop(columns=["id_persona"])
+
 master = construir_master_personas(all_pii)
+master = consolidar_tipos_documento(master)
+
+master = (
+    master
+    .sort_values(["correo", "numero_documento", "periodo"], na_position="last")
+    .drop_duplicates(
+        subset=["correo", "numero_documento"],
+        keep="last"
+    )
+    .reset_index(drop=True)
+)
+
+master = master.rename(columns={
+    "genero_raw": "genero"
+})
+
+master = master[
+    [
+        "correo",
+        "tipo_documento",
+        "tipo_documento2",
+        "sexo",
+        "numero_documento",
+        "nombre_completo",
+        "fecha_nacimiento",
+        "genero",
+        "archivo_origen",
+    ]
+]
 
 print("Filas en master final:", len(master))
 print("Personas únicas por correo en master:", master["correo"].nunique(dropna=True))
@@ -404,6 +463,7 @@ columnas_diagnostico_final = [
     "sexo_raw",
     "genero_raw",
     "periodo",
+    "fecha_nacimiento",
 ]
 
 if not master_final_repetidos.empty:
@@ -440,6 +500,27 @@ if not causas_master_final.empty:
     print(master_final_repetidos.to_string(index=False))
 else:
     print("No hay personas repetidas en master final.")
+
+#%%
+# Personas con más de un valor de sexo/género en master final
+
+master_temp = master.assign(
+    id_persona=master["correo"].fillna(master["numero_documento"])
+)
+
+variacion_sexo_genero_final = (
+    master_temp
+    .groupby("id_persona")[["sexo", "genero"]]
+    .nunique(dropna=False)
+)
+
+print("Personas con más de un sexo armonizado:")
+print((variacion_sexo_genero_final["sexo"] > 1).sum())
+
+
+print("Personas con más de un genero:")
+print((variacion_sexo_genero_final["genero"] > 1).sum())
+
 
 
 #%% =============================================================================

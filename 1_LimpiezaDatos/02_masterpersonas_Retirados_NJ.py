@@ -372,26 +372,108 @@ def construir_master_personas(all_pii: pd.DataFrame) -> pd.DataFrame:
         )
         .reset_index(drop=True)
     )
+def consolidar_documentos(master: pd.DataFrame) -> pd.DataFrame:
+    df = master.copy()
+
+    df["id_persona"] = (
+        df["correo"].fillna("SIN_CORREO")
+        + "||"
+        + df["nombre_completo"].fillna("SIN_NOMBRE")
+    )
+
+    docs_por_persona = (
+        df.dropna(subset=["numero_documento"])
+        .groupby("id_persona")["numero_documento"]
+        .agg(lambda x: sorted(set(x)))
+    )
+
+    docs_df = docs_por_persona.apply(
+    lambda x: pd.Series(x[:2])
+    ).rename(columns={0: "numero_documento1", 1: "numero_documento2"})
+
+    df = df.merge(docs_df, left_on="id_persona", right_index=True, how="left")
+
+    return df.drop(columns=["id_persona"])
+
 
 
 master = construir_master_personas(all_pii)
+master = consolidar_documentos(master)
+master = master.rename(columns={
+    "genero_raw": "genero",
+    "nombre_completo_raw": "nombre_completoo"
+})
+master = master[
+    [
+        "correo",
+        "tipo_documento",
+        "numero_documento1",
+        "numero_documento2",
+        "nombre_completoo",
+        "sexo",
+        "genero",
+        "archivo_origen",
+    ]
+]
+master = master.rename(columns={
+    "nombre_completoo": "nombre_completo"
+})
 
+master = master[
+    [
+        "correo",
+        "tipo_documento",
+        "numero_documento1",
+        "numero_documento2",
+        "nombre_completo",
+        "sexo",
+        "genero",
+        "archivo_origen",
+    ]
+]
+master = (
+    master
+    .sort_values(["correo", "numero_documento1"], na_position="last")
+    .drop_duplicates(
+        subset=["correo", "nombre_completo"],
+        keep="first"
+    )
+    .reset_index(drop=True)
+)
 print("Filas en master final:", len(master))
 print("Personas únicas por correo en master:", master["correo"].nunique(dropna=True))
-print("Personas únicas por documento en master:", master["numero_documento"].nunique(dropna=True))
+print("Personas únicas por documento en master:", master["numero_documento1"].nunique(dropna=True))
 
+#%%
+# Personas con más de un valor de sexo/género en master final
+
+master_temp = master.assign(
+    id_persona=master["correo"].fillna(master["numero_documento1"])
+)
+
+variacion_sexo_genero_final = (
+    master_temp
+    .groupby("id_persona")[["sexo","genero"]]
+    .nunique(dropna=False)
+)
+
+print("Personas con más de un sexo armonizado:")
+print((variacion_sexo_genero_final["sexo"] > 1).sum())
+
+print("Personas con más de un genero:")
+print((variacion_sexo_genero_final["genero"] > 1).sum())
 
 #%% =============================================================================
 # 6. REPETICIONES EN MASTER FINAL
 # =============================================================================
 
-id_persona_final = master["correo"].fillna(master["numero_documento"])
+id_persona_final = master["correo"].fillna(master["numero_documento1"])
 
 master_final_repetidos = (
     master
     .assign(id_persona=id_persona_final)
     .loc[lambda df: df.duplicated("id_persona", keep=False)]
-    .sort_values(["id_persona", "periodo"], na_position="last")
+    .sort_values(["id_persona"], na_position="last")
 )
 
 print("Personas repetidas en master final:", master_final_repetidos["id_persona"].nunique())
@@ -402,10 +484,11 @@ if not master_final_repetidos.empty:
         master_final_repetidos[
             [
                 "correo",
-                "numero_documento",
+                "numero_documento1",
+                "numero_documento2",
                 "nombre_completo",
                 "sexo",
-                "periodo",
+                "genero",
                 "archivo_origen",
             ]
         ].to_string(index=False)
