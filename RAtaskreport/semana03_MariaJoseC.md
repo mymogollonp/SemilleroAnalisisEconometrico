@@ -74,7 +74,7 @@ Basado en los hallazgos del inventario (semana 01), iniciar el script de limpiez
 
 ## Preguntas para el PI/CoPI
 
--
+- Hay duplicados exactos (mismo estudiante, mismo semestre, mismo plan, misma materia). En un caso solo cambia el tipo de cancelación, eso es posible? En otros no cambia el tipo de cancelación.
 
 ---
 
