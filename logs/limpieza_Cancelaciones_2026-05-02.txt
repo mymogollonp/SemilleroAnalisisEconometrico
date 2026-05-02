@@ -1,0 +1,149 @@
+======================================================================
+LIMPIEZA — MÓDULO CANCELACIONES
+Fecha de ejecución: 2026-05-02
+RA: Maria Jose Cadena
+======================================================================
+
+[1] CARGA DE ARCHIVOS
+
+Archivos encontrados: 32
+  · Cancelaciones_2009-2S  →  3,623 filas,  45 columnas
+  · Cancelaciones_2010-1S  →  5,061 filas,  45 columnas
+  · Cancelaciones_2010-2S  →  7,415 filas,  45 columnas
+  · Cancelaciones_2011-1S  →  7,152 filas,  45 columnas
+  · Cancelaciones_2011-2S  →  13,624 filas,  45 columnas
+  · Cancelaciones_2012-1S  →  11,126 filas,  39 columnas
+  · Cancelaciones_2012-2S  →  11,425 filas,  39 columnas
+  · Cancelaciones_2013-1S  →  7,068 filas,  39 columnas
+  · Cancelaciones_2013-2S  →  7,786 filas,  39 columnas
+  · Cancelaciones_2014-1S  →  9,592 filas,  39 columnas
+  · Cancelaciones_2014-2S  →  9,534 filas,  39 columnas
+  · Cancelaciones_2015-1S  →  9,513 filas,  39 columnas
+  · Cancelaciones_2015-2S  →  9,012 filas,  39 columnas
+  · Cancelaciones_2016-1S  →  10,132 filas,  39 columnas
+  · Cancelaciones_2016-2S  →  8,871 filas,  39 columnas
+  · Cancelaciones_2017-1S  →  6,562 filas,  39 columnas
+  · Cancelaciones_2017-2S  →  4,524 filas,  39 columnas
+  · Cancelaciones_2018-1S  →  5,605 filas,  39 columnas
+  · Cancelaciones_2018-2S  →  7,357 filas,  39 columnas
+  · Cancelaciones_2019-1S  →  4,228 filas,  39 columnas
+  · Cancelaciones_2019-2S  →  8,950 filas,  39 columnas
+  · Cancelaciones_2020-1S  →  24,358 filas,  39 columnas
+  · Cancelaciones_2020-2S  →  26,404 filas,  39 columnas
+  · Cancelaciones_2021-1S  →  32,350 filas,  39 columnas
+  · Cancelaciones_2021-2S  →  33,387 filas,  39 columnas
+  · Cancelaciones_2022-1S  →  24,893 filas,  40 columnas
+  · Cancelaciones_2022-2S  →  4,344 filas,  40 columnas
+  · Cancelaciones_2023-1S  →  5,974 filas,  45 columnas
+  · Cancelaciones_2023-2S  →  5,198 filas,  45 columnas
+  · Cancelaciones_2024-1S  →  22,071 filas,  45 columnas
+  · Cancelaciones_2024-2S  →  3,488 filas,  45 columnas  [hoja: Sheet2]
+  · Cancelaciones_2025-1S  →  4,174 filas,  45 columnas
+
+Total filas apiladas: 354,801
+
+[2] LIMPIEZA
+
+--- Verificación de columnas de identificación ---
+  [ADVERTENCIA] Columna 'correo' no encontrada.
+  [ADVERTENCIA] Columna 'numero_documento' no encontrada.
+
+--- Validación de PERIODO ---
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2009-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2010-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2010-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2011-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2011-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2012-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2012-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2013-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2013-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2014-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2014-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2015-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2015-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2016-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2016-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2017-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2017-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2018-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2018-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2019-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2019-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2020-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2020-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2021-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2021-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2022-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2022-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2023-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2023-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2024-1S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2024-2S
+  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en Cancelaciones_2025-1S
+
+--- Armonización de nombres canónicos ---
+  CORREO_INSTITUCIONAL → correo
+  DOCUMENTO → numero_documento
+  NOMBRES_APELLIDOS → nombre_completo
+  tipo_documento: no existe en la fuente → columna vacía (NaN)
+  sexo: no existe en la fuente → columna vacía (NaN)
+  fecha_nacimiento: no existe en la fuente → columna vacía (NaN)
+  nombre_completo: tildes eliminadas, Ñ→N, mayúsculas aplicadas.
+
+--- Conversiones de tipo ---
+  FECHA convertida a datetime. Valores no parseables: 0
+  Tipos aplicados: int → COD_*, CREDITOS, HIST_ACAD; float → NOTA_NUMERICA, PBM, PUNTAJE_ADMISION, GRUP_ACTA.
+
+--- Validación NOTA_NUMERICA ---
+  [OK] NOTA_NUMERICA en rango [0, 5].
+
+  COD_PLAN normalizado a string (strip + upper).
+  Columnas string: strip de espacios aplicado.
+
+[3] COBERTURA DE VARIABLES INTERMITENTES
+
+--- Variables intermitentes (cobertura parcial) ---
+  COD_PROG_CURRICULAR: 77,780/354,801 no-missing (21.9%)  ←  Presente solo 2009-2011 y 2023-2025
+  DESC_PROG_CURRICULAR: 77,780/354,801 no-missing (21.9%)  ←  Presente solo 2009-2011 y 2023-2025
+  CONVOCATORIA: 77,780/354,801 no-missing (21.9%)  ←  Presente solo 2009-2011 y 2023-2025
+  PBM: 76,706/354,801 no-missing (21.6%)  ←  Ausente 2012-2022
+  PUNTAJE_ADMISION: 14,340/354,801 no-missing (4.0%)  ←  Ausente 2012-2022
+  DES_GR_ACTIV: 48,153/354,801 no-missing (13.6%)  ←  Ausente 2012-2021 (alta missing en extremos)
+
+[4] DUPLICADOS EN EL PANEL CONSOLIDADO
+
+--- Duplicados (panel consolidado) ---
+  Llave: correo + PERIODO + COD_PLAN + COD_ASIGNATURA
+  Filas totales:                  354,801
+  Filas en grupos duplicados:      19,381  (5.46%)
+  Grupos únicos duplicados:         9,682
+  Top 10 llaves repetidas:
+    ecampos@unal.edu.co || 2020-2S || 2505 || 2015885  →  4 filas
+    amadera@unal.edu.co || 2024-1S || 2515 || 1000001-B  →  4 filas
+    lorduzj@unal.edu.co || 2024-2S || 2505 || 2015907  →  4 filas
+    spalaciosg@unal.edu.co || 2024-1S || 2983 || 2016856  →  4 filas
+    sramirezse@unal.edu.co || 2024-1S || 2515 || 1000001-B  →  4 filas
+    cediazf@unal.edu.co || 2023-1S || 2553 || 2027746  →  3 filas
+    joagarciaqu@unal.edu.co || 2020-2S || 2530 || 2017615  →  3 filas
+    mdmartine@unal.edu.co || 2023-2S || 2A85 || 2027285  →  3 filas
+    pbtorresp@unal.edu.co || 2009-2S || 2527 || 2016427  →  3 filas
+    pbtorresp@unal.edu.co || 2009-2S || 2527 || 2016457  →  3 filas
+
+[5] SELECCIÓN DE COLUMNAS FINALES
+
+  [AVISO] Columnas presentes NO en el esquema canónico (se conservan — revisar): ['is_duplicado']
+
+  Columnas en el output final: 51
+
+[6] RESUMEN DEL OUTPUT
+  Filas totales:             354,801
+  Columnas:                       51
+  Períodos cubiertos:             32  (2009-2S → 2025-1S)
+  Estudiantes únicos:         76,415
+  Filas marcadas dup:     is_duplicado    19381
+is_duplicado    19381
+dtype: int64
+
+[7] GUARDANDO OUTPUT
+  → G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\Cancelaciones_limpio.csv
