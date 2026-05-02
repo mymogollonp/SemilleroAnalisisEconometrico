@@ -12,6 +12,7 @@ Nota de diseño:
     el esquema canónico. NO se infiere ni imputa ningún valor.
 """
 import sys
+import unicodedata
 import pandas as pd
 import numpy as np
 import re
@@ -44,6 +45,14 @@ def inferir_periodo(nombre_archivo: str) -> str | None:
     if match:
         return f"{match.group()[:4]}-{match.group()[4]}S"
     return None
+
+
+def quitar_tildes(texto) -> str:
+    """Elimina tildes, diéresis y convierte ñ → N. Deja el resto intacto."""
+    if pd.isna(texto):
+        return texto
+    nfkd = unicodedata.normalize("NFD", str(texto))
+    return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
 
@@ -111,11 +120,13 @@ for i, archivo in enumerate(archivos, 1):
     })
 
     df_clean = pd.DataFrame({
+        "fuente"          : "Cancelaciones",   # módulo de origen
         "correo"          : correo.values,
-        "tipo_documento"  : np.nan,          # no disponible en esta fuente
+        "tipo_documento"  : np.nan,            # no disponible en esta fuente
         "numero_documento": numero_doc.values,
         "nombre_completo" : nombre.values,
-        "sexo"            : np.nan,          # no disponible en esta fuente
+        "sexo"            : np.nan,            # no disponible en esta fuente
+        "fecha_nacimiento": np.nan,            # no disponible en esta fuente
         "periodo"         : periodo,
         "archivo_fuente"  : archivo.name,
     })
@@ -131,7 +142,12 @@ print(f"\nTotal registros apilados: {len(df_all)}")
 
 df_all["correo"]           = df_all["correo"].str.strip().str.lower()
 df_all["numero_documento"] = df_all["numero_documento"].str.strip()
-df_all["nombre_completo"]  = df_all["nombre_completo"].str.strip().str.upper()
+df_all["nombre_completo"]  = (
+    df_all["nombre_completo"]
+    .str.strip()
+    .str.upper()
+    .apply(quitar_tildes)        # sin tildes ni ñ
+)
 
 # Eliminar filas sin correo (sin correo no se puede identificar la persona)
 df_all = df_all[df_all["correo"].notna() & (df_all["correo"] != "")]
@@ -153,15 +169,30 @@ df_nombres = (
     .drop_duplicates(["correo", "nombre_completo"])
 )
 
-# Master: una fila por combinación única de variables clave y período
-df_master = df_all.drop_duplicates(
-    ["correo", "tipo_documento", "numero_documento", "nombre_completo", "periodo"]
-).copy()
+# Períodos observados por persona: todos los períodos concatenados con " | "
+periodos_obs = (
+    df_all.dropna(subset=["periodo"])
+    .drop_duplicates(["correo", "periodo"])
+    .sort_values(["correo", "periodo"])
+    .groupby("correo")["periodo"]
+    .apply(lambda x: " | ".join(x))
+    .reset_index(name="periodos_observados")
+)
 
-# Esquema canónico final — tipo_documento y sexo quedan como NaN (no disponibles)
+# Master: una fila por persona (correo único) con el nombre más reciente
+df_master = (
+    df_all.sort_values("periodo")
+    .drop_duplicates(["correo", "numero_documento", "nombre_completo"])
+    .drop_duplicates("correo", keep="last")   # un registro por persona
+    .copy()
+)
+
+df_master = df_master.merge(periodos_obs, on="correo", how="left")
+
+# Esquema canónico final
 df_master = df_master[[
-    "correo", "tipo_documento", "numero_documento",
-    "nombre_completo", "sexo", "periodo", "archivo_fuente"
+    "fuente", "correo", "tipo_documento", "numero_documento",
+    "nombre_completo", "sexo", "fecha_nacimiento", "periodos_observados"
 ]]
 
 # -----------------------------------------------------------------------------
@@ -186,7 +217,7 @@ invalidos = df_master[df_master["validez_doc"] == "invalido"]
 # 6. OUTPUT
 # -----------------------------------------------------------------------------
 
-df_master.to_csv(ARCHIVO_SALIDA, index=False)
+df_master.to_csv(ARCHIVO_SALIDA, index=False, encoding="utf-8-sig")
 print(f"\nGuardado en: {ARCHIVO_SALIDA}")
 
 # -----------------------------------------------------------------------------
@@ -202,8 +233,8 @@ print(f"\nArchivos procesados             : {len(archivos)}")
 print(f"Registros apilados (total)      : {len(df_all)}")
 print(f"Personas únicas (correos)       : {df_master['correo'].nunique()}")
 
-print("\n--- tipo_documento y sexo ---")
-print("  Ambas columnas son NaN en esta fuente (no disponibles).")
+print("\n--- tipo_documento, sexo y fecha_nacimiento ---")
+print("  Las tres columnas son NaN en esta fuente (no disponibles).")
 
 print(f"\n--- Formato de número de documento ---")
 print(f"  Registros con formato inválido: {len(invalidos)}")
