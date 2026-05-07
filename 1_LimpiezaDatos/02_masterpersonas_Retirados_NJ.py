@@ -159,6 +159,8 @@ def armonizar_pii_retirados(df: pd.DataFrame) -> pd.DataFrame:
 
     periodo = obtener_serie(df, "PERIODO_BLOQUEO")
 
+    apertura = obtener_serie(df, "APERTURA", upper=True)
+
     return pd.DataFrame(
         {
             "correo": correo,
@@ -171,6 +173,7 @@ def armonizar_pii_retirados(df: pd.DataFrame) -> pd.DataFrame:
             "sexo_raw": sexo_raw,
             "genero_raw": genero_raw,
             "periodo": periodo,
+            "apertura": apertura,
             "archivo_origen": ARCHIVO_RETIRADOS.name,
         }
     )
@@ -351,6 +354,49 @@ print(causas_repeticion.to_string())
 # 5. MASTER FINAL
 # =============================================================================
 
+def pivotar_aperturas(all_pii: pd.DataFrame) -> pd.DataFrame:
+    df = all_pii.copy()
+    df["id_persona"] = (
+        df["correo"].fillna("SIN_CORREO")
+        + "||"
+        + df["numero_documento"].fillna("SIN_DOCUMENTO")
+    )
+
+    aperturas_por_persona = (
+        df.dropna(subset=["apertura"])
+        .groupby("id_persona")["apertura"]
+        .apply(lambda x: sorted(x.dropna().unique()))
+        .reset_index()
+    )
+
+    if aperturas_por_persona.empty:
+        return pd.DataFrame(columns=["id_persona"])
+
+    max_cols = aperturas_por_persona["apertura"].apply(len).max()
+
+    for i in range(max_cols):
+        aperturas_por_persona[f"apertura_{i + 1}"] = aperturas_por_persona["apertura"].apply(
+            lambda x: x[i] if i < len(x) else pd.NA
+        )
+
+    return aperturas_por_persona.drop(columns=["apertura"])
+
+
+def agregar_aperturas_al_master(
+    master: pd.DataFrame,
+    all_pii: pd.DataFrame,
+) -> pd.DataFrame:
+    aperturas = pivotar_aperturas(all_pii)
+    df = master.copy()
+    df["id_persona"] = (
+        df["correo"].fillna("SIN_CORREO")
+        + "||"
+        + df["numero_documento"].fillna("SIN_DOCUMENTO")
+    )
+    df = df.merge(aperturas, on="id_persona", how="left")
+    return df.drop(columns=["id_persona"])
+
+
 def construir_master_personas(all_pii: pd.DataFrame) -> pd.DataFrame:
     all_pii_ordenado = (
         all_pii
@@ -399,25 +445,14 @@ def consolidar_documentos(master: pd.DataFrame) -> pd.DataFrame:
 
 master = construir_master_personas(all_pii)
 master = consolidar_documentos(master)
+master = agregar_aperturas_al_master(master, all_pii)
+
 master = master.rename(columns={
     "genero_raw": "genero",
-    "nombre_completo_raw": "nombre_completoo"
+    "nombre_completo_raw": "nombre_completo"
 })
-master = master[
-    [
-        "correo",
-        "tipo_documento",
-        "numero_documento1",
-        "numero_documento2",
-        "nombre_completoo",
-        "sexo",
-        "genero",
-        "archivo_origen",
-    ]
-]
-master = master.rename(columns={
-    "nombre_completoo": "nombre_completo"
-})
+
+apertura_cols = sorted([col for col in master.columns if col.startswith("apertura_")])
 
 master = master[
     [
@@ -429,6 +464,7 @@ master = master[
         "sexo",
         "genero",
         "archivo_origen",
+        *apertura_cols,
     ]
 ]
 master = (
@@ -578,6 +614,7 @@ def main() -> None:
     )
 
     master_main = construir_master_personas(all_pii_main)
+    master_main = agregar_aperturas_al_master(master_main, all_pii_main)
 
     id_persona_final_main = master_main["correo"].fillna(
         master_main["numero_documento"]
