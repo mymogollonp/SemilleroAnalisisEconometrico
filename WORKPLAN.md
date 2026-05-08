@@ -82,7 +82,12 @@ C:\Drive2023\UNAL_Docente\SemilleroAnalisisEconometrico\
     │   ├── Cancelaciones\
     │   ├── Egresados\
     │   └── Retirados\
-    ├── 2_DatosLimpios\          ← outputs de limpieza (un CSV limpio por módulo)
+    ├── 2_DatosLimpios\          ← outputs de limpieza (un CSV limpio por semestre por módulo)
+    │   ├── Matriculado\         ← Matriculados_[YYYY-NS]_limpio.csv (34 archivos)
+    │   ├── Cursadas\            ← Cursadas_[YYYY-NS]_limpio.csv (33 archivos)
+    │   ├── Cancelaciones\       ← Cancelaciones_[YYYY-NS]_limpio.csv (32 archivos)
+    │   ├── Egresados\           ← Egresados_[YYYY-NS]_limpio.csv (33 archivos)
+    │   └── Retirados\           ← Retirados_limpio.csv (archivo único — sin semestres)
     ├── panel\                   ← panel maestro
     ├── muestras\                ← muestras
     └── outputs\                 ← tablas y figuras
@@ -358,6 +363,8 @@ Muestra aleatoria estratificada 5%, estratificada por período y programa. Semil
 | Archivo | Ubicación en Drive | Descripción |
 |---|---|---|
 | `MASTER_PERSONAS_ANON.csv` | `DatosArmonizados/1_DatosAnonimizados/` | Dataset maestro de personas anonimizado |
+| `[Modulo]_[YYYY-NS]_limpio.csv` | `DatosArmonizados/2_DatosLimpios/[Modulo]/` | Un CSV limpio por semestre por módulo (Matriculados, Cursadas, Cancelaciones, Egresados) |
+| `Retirados_limpio.csv` | `DatosArmonizados/2_DatosLimpios/Retirados/` | Archivo único limpio para Retirados |
 | `BASE_FCE_ARMONIZADA.csv` | `FinalWorkingDataSets/` | Panel maestro completo |
 | `MUESTRA_FCE_5PCT.csv` | `DatosArmonizados/muestras/` | Muestra para uso en curso |
 | `LLAVE_ID_UNAL_FCE.csv` | `DatosArmonizados/keys/` | Crosswalk `id_unal` ↔ ID real (confidencial) |
