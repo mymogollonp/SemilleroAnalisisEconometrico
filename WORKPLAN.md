@@ -277,6 +277,22 @@ Los diccionarios ya fueron creados por Mauricio Hernandez. Cada RA debe **comple
 Un script por fuente en `1_LimpiezaDatos/`. Cada uno lee los archivos originales de `DatosOriginales/`, aplica la limpieza y guarda un CSV limpio **por semestre** en `DatosArmonizados/2_DatosLimpios/[modulo]/`.
 **Regla:** nunca modificar los archivos de `DatosOriginales/`.
 
+### Regla de privacidad — Sin PII en archivos limpios
+
+> **Los archivos limpios no pueden contener ninguna variable que identifique directamente o indirectamente a un estudiante.**
+
+Esto incluye, pero no se limita a:
+
+| Tipo | Ejemplos de variables a eliminar |
+|---|---|
+| Identificadores directos | nombre, correo, cédula, código de estudiante, fecha de nacimiento |
+| Identificadores indirectos | dirección de residencia, teléfono, municipio de residencia a nivel detallado |
+| Variables académicas con identificación | nombre del director de tesis, título de la tesis |
+
+Las variables indirectas **no se pierden** — se conservan en los archivos originales en `DatosOriginales/` y podrán limpiarse y armonizarse en una fase posterior cuando el equipo decida incluirlas. **No eliminar del archivo original; solo excluir del output limpio.**
+
+Si un RA detecta una variable que podría identificar estudiantes y no está listada arriba, debe documentarla en su reporte semanal y consultarle al PI/CoPI antes de decidir si incluirla o excluirla.
+
 | RA | Tarea central | Script | Output en `DatosArmonizados/2_DatosLimpios/` |
 |---|---|---|---|
 | Nicolas Camacho | Estandarizar variables de programa, período, estrato, PBM; detectar duplicados | `03_limpieza_Matriculados_NC.[ext]` | `Matriculado/Matriculados_[YYYY-NS]_limpio.csv` — un CSV por semestre |
