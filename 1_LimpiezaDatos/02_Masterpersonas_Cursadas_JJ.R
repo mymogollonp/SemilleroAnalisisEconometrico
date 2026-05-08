@@ -12,6 +12,7 @@
 library(readxl)
 library(dplyr)
 library(stringr)
+library(stringi)
 library(purrr)
 library(tidyr)
 library(readr)
@@ -47,6 +48,16 @@ limpiar_texto <- function(x) {
   x <- str_trim(x)
   x <- str_squish(x)
   x[x %in% c("", "NA", "N/A", "NULL", "null", "na")] <- NA_character_
+  x
+}
+
+limpiar_nombre_completo <- function(x) {
+  x <- limpiar_texto(x)
+  x <- stringi::stri_trans_general(x, "Latin-ASCII")
+  x <- stringr::str_to_upper(x)
+  x <- stringr::str_replace_all(x, "[^A-Z0-9 ]", " ")
+  x <- stringr::str_squish(x)
+  x <- dplyr::na_if(x, "")
   x
 }
 
@@ -92,6 +103,12 @@ leer_y_armonizar_cursadas <- function(ruta_archivo, sheet_datos = 2) {
     stringr::str_trim() |>
     stringr::str_squish()
   
+  # APERTURA se conserva cuando existe en el archivo.
+  # Si algún archivo no la trae, se crea vacía para que el script no se rompa.
+  if (!"APERTURA" %in% names(df_raw)) {
+    df_raw$APERTURA <- NA_character_
+  }
+  
   columnas_necesarias <- c("DOCUMENTO", "CORREO", "NOMBRES", "APELLIDOS")
   
   faltantes <- setdiff(columnas_necesarias, names(df_raw))
@@ -110,10 +127,11 @@ leer_y_armonizar_cursadas <- function(ruta_archivo, sheet_datos = 2) {
     transmute(
       archivo_origen   = nombre_archivo,
       periodo          = periodo_archivo,
+      apertura         = limpiar_texto(APERTURA),
       correo           = stringr::str_to_lower(limpiar_texto(CORREO)),
       tipo_documento   = NA_character_,
       numero_documento = limpiar_texto(DOCUMENTO),
-      nombre_completo  = stringr::str_squish(
+      nombre_completo  = limpiar_nombre_completo(
         paste(
           limpiar_texto(NOMBRES),
           limpiar_texto(APELLIDOS)
@@ -121,9 +139,6 @@ leer_y_armonizar_cursadas <- function(ruta_archivo, sheet_datos = 2) {
       ),
       sexo             = NA_character_,
       fuente           = "Cursadas"
-    ) %>%
-    mutate(
-      nombre_completo = dplyr::na_if(nombre_completo, "")
     )
   
   return(df_canonica)
@@ -141,6 +156,7 @@ cursadas_apilada <- cursadas_apilada %>%
   dplyr::filter(
     !(
       is.na(periodo) &
+        is.na(apertura) &
         is.na(correo) &
         is.na(numero_documento) &
         is.na(nombre_completo)
@@ -161,6 +177,8 @@ dplyr::n_distinct(cursadas_apilada$periodo)
 cursadas_apilada %>%
   dplyr::summarise(
     filas_totales       = dplyr::n(),
+    apertura_no_missing = sum(!is.na(apertura)),
+    apertura_missing    = sum(is.na(apertura)),
     docs_no_missing     = sum(!is.na(numero_documento)),
     docs_missing        = sum(is.na(numero_documento)),
     correos_no_missing  = sum(!is.na(correo)),
@@ -174,6 +192,7 @@ cursadas_apilada %>%
   dplyr::select(
     archivo_origen,
     periodo,
+    apertura,
     correo,
     numero_documento,
     nombre_completo
@@ -191,8 +210,10 @@ resumen_documento <- cursadas_apilada %>%
     n_periodos = dplyr::n_distinct(periodo, na.rm = TRUE),
     n_correos = dplyr::n_distinct(correo, na.rm = TRUE),
     n_nombres = dplyr::n_distinct(nombre_completo, na.rm = TRUE),
+    n_aperturas = dplyr::n_distinct(apertura, na.rm = TRUE),
     correos_observados = colapsar_unicos(correo),
     nombres_observados = colapsar_unicos(nombre_completo),
+    aperturas_observadas = colapsar_unicos(apertura),
     periodos_observados = colapsar_unicos(periodo),
     .groups = "drop"
   )
@@ -203,8 +224,10 @@ resumen_documento %>%
     personas_con_documento = dplyr::n(),
     docs_con_mas_de_un_correo = sum(n_correos > 1),
     docs_con_mas_de_un_nombre = sum(n_nombres > 1),
+    docs_con_mas_de_una_apertura = sum(n_aperturas >1),
     max_correos_por_doc = max(n_correos, na.rm = TRUE),
-    max_nombres_por_doc = max(n_nombres, na.rm = TRUE)
+    max_nombres_por_doc = max(n_nombres, na.rm = TRUE),
+    max_aperturas_por_doc = max(n_aperturas, na.rm = TRUE)
   )
 
 # Ver casos con más de un correo
@@ -216,6 +239,7 @@ resumen_documento %>%
     n_filas,
     n_periodos,
     n_correos,
+    n_aperturas,
     correos_observados,
     nombres_observados
   ) %>%
@@ -230,6 +254,7 @@ resumen_documento %>%
     n_filas,
     n_periodos,
     n_nombres,
+    n_aperturas,
     nombres_observados,
     correos_observados
   ) %>%
@@ -251,11 +276,13 @@ master_personas <- cursadas_apilada %>%
     nombre_completo = moda_simple(nombre_completo),
     correo = moda_simple(correo),
     sexo = NA_character_,
+    apertura = colapsar_unicos(apertura),
     fuente = "Cursadas",
     periodos_observados = colapsar_unicos(periodo),
     archivos_observados = colapsar_unicos(archivo_origen),
     n_filas_cursadas = dplyr::n(),
     n_periodos = dplyr::n_distinct(periodo, na.rm = TRUE),
+    n_aperturas_observadas = dplyr::n_distinct(apertura, na.rm = TRUE),
     n_correos_observados = dplyr::n_distinct(correo, na.rm = TRUE),
     n_nombres_observados = dplyr::n_distinct(nombre_completo, na.rm = TRUE),
     .groups = "drop"
@@ -267,12 +294,11 @@ master_personas <- cursadas_apilada %>%
     nombre_completo,
     correo,
     sexo,
+    apertura,
     periodos_observados,
-    archivos_observados,
     n_filas_cursadas,
     n_periodos,
-    n_correos_observados,
-    n_nombres_observados
+    n_aperturas_observadas
   )
 
 # Chequeos del master
@@ -284,8 +310,8 @@ master_personas %>%
     docs_unicos = dplyr::n_distinct(numero_documento),
     nombres_missing = sum(is.na(nombre_completo)),
     correos_missing = sum(is.na(correo)),
-    docs_con_mas_de_un_correo = sum(n_correos_observados > 1),
-    docs_con_mas_de_un_nombre = sum(n_nombres_observados > 1)
+    apertura_missing = sum(is.na(apertura)),
+    docs_con_mas_de_una_apertura = sum(n_aperturas_observadas > 1)
   )
 
 head(master_personas, 20)
