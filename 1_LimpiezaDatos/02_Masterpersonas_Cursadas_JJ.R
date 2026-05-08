@@ -7,6 +7,8 @@
 # Por tanto, en este módulo:
 #   - tipo_documento = NA
 #   - sexo = NA
+#   - genero = NA
+#   - fecha_nacimiento = NA
 # Estos campos podrán completarse luego al unir con otras fuentes.
 
 library(readxl)
@@ -72,12 +74,6 @@ colapsar_unicos <- function(x, sep = " | ") {
   paste(x, collapse = sep)
 }
 
-moda_simple <- function(x) {
-  x <- x[!is.na(x) & x != ""]
-  if (length(x) == 0) return(NA_character_)
-  tab <- sort(table(x), decreasing = TRUE)
-  names(tab)[1]
-}
 
 # 4. Función para leer y armonizar un archivo de Cursadas-----------------------
 
@@ -267,60 +263,115 @@ resumen_documento %>%
 # Por tanto, se puede consolidar a nivel de numero_documento.
 
 # 8. Construir master de personas-----------------------------------------------
+# Llave: correo (no numero_documento)
+# Variables con columnas dinámicas: numero_documento, nombre_completo, apertura
+# Variables fijas como NA: tipo_documento, sexo, genero, fecha_nacimiento
+# Solo entran registros con correo no vacío
 
-master_personas <- cursadas_apilada %>%
-  dplyr::filter(!is.na(numero_documento), numero_documento != "") %>%
-  dplyr::group_by(numero_documento) %>%
+# Función auxiliar: pivotea los valores únicos de una variable en columnas numeradas
+pivotar_valores_unicos <- function(df, variable, prefijo) {
+  df %>%
+    dplyr::group_by(correo) %>%
+    dplyr::summarise(
+      valores = list(unique(na.omit(.data[[variable]][.data[[variable]] != ""]))),
+      .groups = "drop"
+    ) %>%
+    dplyr::mutate(
+      n_vals = purrr::map_int(valores, length)
+    ) %>%
+    {
+      max_n <- max(.$n_vals, na.rm = TRUE)
+      if (max_n == 0) {
+        dplyr::select(., correo) %>%
+          dplyr::mutate(!!paste0(prefijo, "1") := NA_character_)
+      } else {
+        purrr::reduce(
+          seq_len(max_n),
+          function(acc, i) {
+            col_name <- paste0(prefijo, i)
+            acc %>%
+              dplyr::mutate(
+                !!col_name := purrr::map_chr(valores, ~ if (length(.x) >= i) .x[[i]] else NA_character_)
+              )
+          },
+          .init = .
+        ) %>%
+          dplyr::select(-valores, -n_vals)
+      }
+    }
+}
+
+# Base de entrada: solo registros con correo válido
+base_con_correo <- cursadas_apilada %>%
+  dplyr::filter(!is.na(correo), correo != "")
+
+# Registros sin correo (para reporte)
+base_sin_correo <- cursadas_apilada %>%
+  dplyr::filter(is.na(correo) | correo == "")
+
+message("Registros con correo: ", nrow(base_con_correo))
+message("Registros sin correo (excluidos del master): ", nrow(base_sin_correo))
+
+# Columnas dinámicas por variable
+cols_numero_documento <- pivotar_valores_unicos(base_con_correo, "numero_documento", "numero_documento")
+cols_nombre_completo  <- pivotar_valores_unicos(base_con_correo, "nombre_completo",  "nombre_completo")
+cols_apertura         <- pivotar_valores_unicos(base_con_correo, "apertura",         "apertura")
+
+# Columna archivo_origen colapsada
+col_archivo_origen <- base_con_correo %>%
+  dplyr::group_by(correo) %>%
   dplyr::summarise(
-    tipo_documento = NA_character_,
-    nombre_completo = moda_simple(nombre_completo),
-    correo = moda_simple(correo),
-    sexo = NA_character_,
-    apertura = colapsar_unicos(apertura),
-    fuente = "Cursadas",
-    periodos_observados = colapsar_unicos(periodo),
-    archivos_observados = colapsar_unicos(archivo_origen),
-    n_filas_cursadas = dplyr::n(),
-    n_periodos = dplyr::n_distinct(periodo, na.rm = TRUE),
-    n_aperturas_observadas = dplyr::n_distinct(apertura, na.rm = TRUE),
-    n_correos_observados = dplyr::n_distinct(correo, na.rm = TRUE),
-    n_nombres_observados = dplyr::n_distinct(nombre_completo, na.rm = TRUE),
+    archivo_origen = colapsar_unicos(archivo_origen),
     .groups = "drop"
-  ) %>%
+  )
+
+# Unir todo por correo
+master_personas <- col_archivo_origen %>%
+  dplyr::left_join(cols_numero_documento, by = "correo") %>%
+  dplyr::left_join(cols_nombre_completo,  by = "correo") %>%
+  dplyr::left_join(cols_apertura,         by = "correo") %>%
+  dplyr::mutate(
+    tipo_documento   = NA_character_,
+    sexo             = NA_character_,
+    genero           = NA_character_,
+    fecha_nacimiento = NA_character_
+  )
+
+# Ordenar columnas: fijas primero, luego dinámicas
+cols_fijas    <- c("correo", "tipo_documento", "sexo", "genero", "fecha_nacimiento")
+cols_nombre   <- sort(grep("^nombre_completo", names(master_personas), value = TRUE))
+cols_doc      <- sort(grep("^numero_documento", names(master_personas), value = TRUE))
+cols_apertura_final <- sort(grep("^apertura", names(master_personas), value = TRUE))
+
+master_personas <- master_personas %>%
   dplyr::select(
-    fuente,
-    tipo_documento,
-    numero_documento,
-    nombre_completo,
-    correo,
-    sexo,
-    apertura,
-    periodos_observados,
-    n_filas_cursadas,
-    n_periodos,
-    n_aperturas_observadas
+    dplyr::all_of(cols_fijas),
+    dplyr::all_of(cols_nombre),
+    dplyr::all_of(cols_doc),
+    dplyr::all_of(cols_apertura_final),
+    archivo_origen
   )
 
 # Chequeos del master
 dim(master_personas)
+names(master_personas)
 
 master_personas %>%
   dplyr::summarise(
-    personas = dplyr::n(),
-    docs_unicos = dplyr::n_distinct(numero_documento),
-    nombres_missing = sum(is.na(nombre_completo)),
-    correos_missing = sum(is.na(correo)),
-    apertura_missing = sum(is.na(apertura)),
-    docs_con_mas_de_una_apertura = sum(n_aperturas_observadas > 1)
+    personas          = dplyr::n(),
+    correos_unicos    = dplyr::n_distinct(correo),
+    nombre1_missing   = sum(is.na(nombre_completo1)),
+    doc1_missing      = sum(is.na(numero_documento1)),
+    apertura1_missing = sum(is.na(apertura1))
   )
 
 head(master_personas, 20)
 
 # 9. Exportar master de personas------------------------------------------------
 
-# Verificar que hay una sola fila por numero_documento
+# Verificar unicidad por correo
 master_personas %>%
-  dplyr::count(numero_documento) %>%
+  dplyr::count(correo) %>%
   dplyr::filter(n > 1)
 
 # Exportar archivo final
@@ -332,27 +383,28 @@ readr::write_csv(
 
 # 10. Mini reporte de validación
 
+## 10. Mini reporte de validación
+
 # Resumen general del proceso:
 # - Se procesaron 4,665,718 registros de cursadas.
-# - Se construyó un master final con 142,636 personas únicas (una fila por numero_documento).
+# - 324 registros fueron excluidos del master por no tener correo.
+# - El master final tiene 142,519 personas únicas (una fila por correo) y 17 columnas.
 
 # Calidad de la llave:
-# - numero_documento identifica de forma única a cada persona (sin duplicados en el master).
-# - No se detectaron documentos con múltiples correos ni múltiples nombres en el 
-#master (Solo un documento que aparece con dos nombres, aparentemente la misma 
-#persona; un registro con el primer apellido, y otro registro con los dos apellidos.
+# - correo identifica de forma única a cada persona (sin duplicados en el master).
+# - El conteo de duplicados por correo devolvió 0 filas.
 
-# Completitud de variables:
-# - nombre_completo: 0 valores faltantes.
-# - correo: 114 valores faltantes (~0.08% del total).
-# - numero_documento: completo en el master.
+# Columnas dinámicas generadas:
+# - nombre_completo1, nombre_completo2 (algunos correos tienen hasta 2 nombres distintos)
+# - numero_documento1, numero_documento2 (algunos correos tienen hasta 2 documentos distintos)
+# - apertura1 a apertura7 (algunos correos tienen hasta 7 aperturas distintas)
+
+# Completitud de variables (sobre el master final):
+# - nombre_completo1: 0 valores faltantes.
+# - numero_documento1: 0 valores faltantes.
+# - apertura1: 0 valores faltantes.
 
 # Conclusión:
-# - El master de personas es consistente, sin duplicados y con muy bajo nivel de faltantes.
-# - numero_documento funciona adecuadamente como identificador principal.
-# - El dataset está listo para ser utilizado en etapas posteriores de integración con otras fuentes.
-
-# Output generado:
-# - DatosArmonizados/keys/MASTER_PERSONAS_CURSADAS_PII.csv
-
-
+# - El master es consistente, sin duplicados y sin faltantes en las variables principales.
+# - correo funciona adecuadamente como identificador principal.
+# - El dataset está listo para integrarse con otras fuentes.
