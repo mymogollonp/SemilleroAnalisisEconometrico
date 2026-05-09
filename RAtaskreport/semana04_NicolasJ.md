@@ -27,14 +27,14 @@
 **Script:** `02_masterpersonas_Egresados_NJ.[ext]`
 **Output en Drive:** `DatosArmonizados/keys/MASTER_PERSONAS_EGRESADOS_PII.csv`
 
-- `[ ]` Incluir `fecha_nacimiento` — buscarla en los archivos de Egresados y registrarla en formato `YYYY-MM-DD`; si no existe, dejar la columna como `NA` y documentarlo
-- `[ ]` Verificar que `tipo_documento` aplica el mapeo canónico completo (CC, CE, PA, TI, PEP, OTRO)
-- `[ ]` Verificar que `sexo` aplica el mapeo canónico completo (M, F, X, NA)
-- `[ ]` Verificar que `nombre_completo` está en mayúsculas y sin tildes ni caracteres especiales
-- `[ ]` Verificar longitud válida de `numero_documento` por tipo
-- `[ ]` Confirmar que el output tiene **una fila por `correo`** — sin duplicados
-- `[ ]` Guardar `MASTER_PERSONAS_EGRESADOS_PII.csv` en `DatosArmonizados/keys/` (solo Drive, nunca a GitHub)
-- `[ ]` Hacer **commit y push** del script actualizado
+- `[x]` Incluir `fecha_nacimiento` — buscarla en los archivos de Egresados y registrarla en formato `YYYY-MM-DD`; si no existe, dejar la columna como `NA` y documentarlo
+- `[x]` Verificar que `tipo_documento` aplica el mapeo canónico completo (CC, CE, PA, TI, PEP, OTRO)
+- `[x]` Verificar que `sexo` aplica el mapeo canónico completo (M, F, X, NA)
+- `[x]` Verificar que `nombre_completo` está en mayúsculas y sin tildes ni caracteres especiales
+- `[x]` Verificar longitud válida de `numero_documento` por tipo
+- `[x]` Confirmar que el output tiene **una fila por `correo`** — sin duplicados
+- `[x]` Guardar `MASTER_PERSONAS_EGRESADOS_PII.csv` en `DatosArmonizados/keys/` (solo Drive, nunca a GitHub)
+- `[x]` Hacer **commit y push** del script actualizado
 
 ---
 
@@ -43,15 +43,15 @@
 **Script:** `02_masterpersonas_Retirados_NJ.[ext]`
 **Output en Drive:** `DatosArmonizados/keys/MASTER_PERSONAS_RETIRADOS_PII.csv`
 
-- `[ ]` Incluir `fecha_nacimiento` — buscarla en `Retirados_desde_2009.xlsx` y registrarla en formato `YYYY-MM-DD`; si no existe, dejar como `NA` y documentarlo
-- `[ ]` Verificar que `tipo_documento` aplica el mapeo canónico completo
-- `[ ]` Verificar que `sexo` aplica el mapeo canónico completo
-- `[ ]` Verificar que `nombre_completo` está en mayúsculas y sin caracteres especiales
-- `[ ]` Verificar longitud válida de `numero_documento` por tipo
-- `[ ]` Confirmar que el output tiene **una fila por `correo`** — sin duplicados
-- `[ ]` Guardar `MASTER_PERSONAS_RETIRADOS_PII.csv` en `DatosArmonizados/keys/` (solo Drive, nunca a GitHub)
-- `[ ]` Hacer **commit y push** del script actualizado
-- `[ ]` **Notificar a Jeronimo Jimenez** que ambos archivos (Egresados y Retirados) están disponibles en Drive
+- `[x]` Incluir `fecha_nacimiento` — buscarla en `Retirados_desde_2009.xlsx` y registrarla en formato `YYYY-MM-DD`; si no existe, dejar como `NA` y documentarlo
+- `[x]` Verificar que `tipo_documento` aplica el mapeo canónico completo
+- `[x]` Verificar que `sexo` aplica el mapeo canónico completo
+- `[x]` Verificar que `nombre_completo` está en mayúsculas y sin caracteres especiales
+- `[x]` Verificar longitud válida de `numero_documento` por tipo
+- `[x]` Confirmar que el output tiene **una fila por `correo`** — sin duplicados
+- `[x]` Guardar `MASTER_PERSONAS_RETIRADOS_PII.csv` en `DatosArmonizados/keys/` (solo Drive, nunca a GitHub)
+- `[x]` Hacer **commit y push** del script actualizado
+- `[x]` **Notificar a Jeronimo Jimenez** que ambos archivos (Egresados y Retirados) están disponibles en Drive
 
 ---
 
@@ -117,9 +117,9 @@
 
 ## Comentarios adicionales
 
-**¿Se encontró `fecha_nacimiento` en Egresados?** (Sí / No / Parcialmente)
+**¿Se encontró `fecha_nacimiento` en Egresados?** Sí 
 
-**¿Se encontró `fecha_nacimiento` en Retirados?** (Sí / No / Parcialmente)
+**¿Se encontró `fecha_nacimiento` en Retirados?** No
 
 **Valores únicos de `tipo_titulo` / `nivel_titulo` encontrados en Egresados:** (completar)
 
