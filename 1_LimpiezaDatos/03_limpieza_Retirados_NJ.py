@@ -34,6 +34,13 @@ print("Columnas:", len(df.columns))
 # 3. FUNCIONES BASE
 # =============================================================================
 
+def quitar_tildes(texto: str) -> str:
+    return "".join(
+        c for c in unicodedata.normalize("NFKD", texto)
+        if not unicodedata.combining(c)
+    )
+
+
 def estandarizar_periodo(valor: str) -> str:
     if pd.isna(valor):
         return pd.NA
@@ -51,6 +58,40 @@ def estandarizar_periodo(valor: str) -> str:
     return f"{año}-{sem}S"
 
 
+MAPEO_NIVEL_TITULO = {
+    "PREGRADO": "PREGRADO",
+    "ESPECIALIZACION": "ESPECIALIZACION",
+    "ESPECIALIDAD": "ESPECIALIZACION",
+    "MAESTRIA": "MAESTRIA",
+    "DOCTORADO": "DOCTORADO",
+}
+
+def armonizar_nivel(serie: pd.Series) -> pd.Series:
+    norm = serie.astype(str).str.strip().map(quitar_tildes).str.upper()
+    norm = norm.where(norm != "NAN", other=pd.NA)
+    resultado = norm.map(lambda x: MAPEO_NIVEL_TITULO.get(x, x) if pd.notna(x) else pd.NA)
+    no_mapeados = set(norm.dropna()) - set(MAPEO_NIVEL_TITULO)
+    if no_mapeados:
+        print(f"  [nivel] valores sin mapeo: {sorted(no_mapeados)}")
+    return resultado
+
+
+COLUMNAS_PII = ["DOCUMENTO", "NOMBRES_LEGAL", "APELLIDO1_LEGAL", "APELLIDO2_LEGAL"]
+
+def eliminar_pii(df: pd.DataFrame) -> pd.DataFrame:
+    cols_a_eliminar = [c for c in COLUMNAS_PII if c in df.columns]
+    return df.drop(columns=cols_a_eliminar)
+
+
+def convertir_decimal_a_coma(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    patron = r"^(\d+)\.(\d+)$"
+    for col in df.columns:
+        if df[col].dtype == object:
+            df[col] = df[col].str.replace(patron, r"\1,\2", regex=True)
+    return df
+
+
 #%% =============================================================================
 # 4. LIMPIEZA BASE
 # =============================================================================
@@ -58,6 +99,10 @@ def estandarizar_periodo(valor: str) -> str:
 # Estandarizar periodo
 if "PERIODO_BLOQUEO" in df.columns:
     df["PERIODO_BLOQUEO"] = df["PERIODO_BLOQUEO"].apply(estandarizar_periodo)
+
+# Armonizar nivel
+if "NIVEL" in df.columns:
+    df["NIVEL"] = armonizar_nivel(df["NIVEL"])
 
 
 #%% =============================================================================
@@ -102,7 +147,12 @@ print("Duplicados eliminados:", antes - despues)
 # =============================================================================
 
 output_file = OUTPUT_DIR / "retirados_limpio.csv"
-df.to_csv(output_file, index=False, encoding="utf-8-sig")
+(
+    df
+    .pipe(eliminar_pii)
+    .pipe(convertir_decimal_a_coma)
+    .to_csv(output_file, index=False, encoding="utf-8-sig", sep=";")
+)
 
 print("Archivo guardado en:", output_file)
 
