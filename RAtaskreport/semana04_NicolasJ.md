@@ -122,17 +122,29 @@ Aún no se elimina la columna correo en los archivos de limpieza, esto para real
 **¿Se encontró `fecha_nacimiento` en Retirados?** No
 
 **Valores únicos de `tipo_titulo` / `nivel_titulo` encontrados en Egresados:** (completar)
+
 La columna NIVEL en ambos módulos tiene 5 valores: PREGRADO, ESPECIALIZACIÓN, ESPECIALIDAD, MAESTRÍA, DOCTORADO
+
 **Mapeo aplicado para `tipo_titulo`:** (completar)
+
 Argumento que especialidad y especialización son lo mismo, por lo que todos los valores de ESPECIALIDAD fueron convertidos a ESPECIALIZACIÓN
+
 **Valores únicos de `tipo_retiro` / `causal_retiro` encontrados en Retirados:** (completar)
+
 9
+
 **Mapeo aplicado para `tipo_retiro`:** (completar)
+
 Ninguno, ya que se verifica que entre la columna BLOQUEO (descripción del bloqueo) y la columna COD_BLOQUEO no hay inconsistencias, hay una relación 1 a 1, por lo que no vi necesario un mapeo.
+
 **N personas únicas en MASTER_PERSONAS_EGRESADOS_PII.csv:** (completar)
+
 79.948
+
 **N personas únicas en MASTER_PERSONAS_RETIRADOS_PII.csv:** (completar)
+
 41.394
+
 ---
 
 ## Horas trabajadas (estimado)
