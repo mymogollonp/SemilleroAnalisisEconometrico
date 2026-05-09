@@ -161,6 +161,8 @@ def armonizar_pii_retirados(df: pd.DataFrame) -> pd.DataFrame:
 
     apertura = obtener_serie(df, "APERTURA", upper=True)
 
+    fecha_nacimiento = obtener_serie(df, "FECHA NACIMIENTO")
+
     return pd.DataFrame(
         {
             "correo": correo,
@@ -172,6 +174,7 @@ def armonizar_pii_retirados(df: pd.DataFrame) -> pd.DataFrame:
             "sexo": sexo,
             "sexo_raw": sexo_raw,
             "genero_raw": genero_raw,
+            "fecha_nacimiento": fecha_nacimiento,
             "periodo": periodo,
             "apertura": apertura,
             "archivo_origen": ARCHIVO_RETIRADOS.name,
@@ -463,6 +466,7 @@ master = master[
         "nombre_completo",
         "sexo",
         "genero",
+        "fecha_nacimiento",
         "archivo_origen",
         *apertura_cols,
     ]
