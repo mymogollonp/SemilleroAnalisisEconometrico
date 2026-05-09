@@ -109,24 +109,27 @@ for i, archivo in enumerate(archivos, 1):
     correo     = get("correo_institucional")
     numero_doc = get("documento")
     nombre     = get("nombres_apellidos")
+    apertura   = get("apertura")
 
     log.append({
-        "archivo"      : archivo.name,
-        "periodo"      : periodo,
-        "n_obs"        : len(df),
-        "tiene_correo" : "correo_institucional" in df.columns,
-        "tiene_num_doc": "documento"            in df.columns,
-        "tiene_nombre" : "nombres_apellidos"    in df.columns,
+        "archivo"       : archivo.name,
+        "periodo"       : periodo,
+        "n_obs"         : len(df),
+        "tiene_correo"  : "correo_institucional" in df.columns,
+        "tiene_num_doc" : "documento"            in df.columns,
+        "tiene_nombre"  : "nombres_apellidos"    in df.columns,
+        "tiene_apertura": "apertura"             in df.columns,
     })
 
     df_clean = pd.DataFrame({
-        "fuente"          : "Cancelaciones",   # módulo de origen
+        "fuente"          : "Cancelaciones",
         "correo"          : correo.values,
-        "tipo_documento"  : np.nan,            # no disponible en esta fuente
+        "tipo_documento"  : np.nan,
         "numero_documento": numero_doc.values,
         "nombre_completo" : nombre.values,
-        "sexo"            : np.nan,            # no disponible en esta fuente
-        "fecha_nacimiento": np.nan,            # no disponible en esta fuente
+        "sexo"            : np.nan,
+        "fecha_nacimiento": np.nan,
+        "apertura"        : apertura.values,
         "periodo"         : periodo,
         "archivo_fuente"  : archivo.name,
     })
@@ -192,7 +195,8 @@ df_master = df_master.merge(periodos_obs, on="correo", how="left")
 # Esquema canónico final
 df_master = df_master[[
     "fuente", "correo", "tipo_documento", "numero_documento",
-    "nombre_completo", "sexo", "fecha_nacimiento", "periodos_observados"
+    "nombre_completo", "sexo", "fecha_nacimiento", "apertura",
+    "periodos_observados"
 ]]
 
 # -----------------------------------------------------------------------------
