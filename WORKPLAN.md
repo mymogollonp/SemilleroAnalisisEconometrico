@@ -82,7 +82,12 @@ C:\Drive2023\UNAL_Docente\SemilleroAnalisisEconometrico\
     │   ├── Cancelaciones\
     │   ├── Egresados\
     │   └── Retirados\
-    ├── 2_DatosLimpios\          ← outputs de limpieza (un CSV limpio por módulo)
+    ├── 2_DatosLimpios\          ← outputs de limpieza (un CSV limpio por semestre por módulo)
+    │   ├── Matriculado\         ← Matriculados_[YYYY-NS]_limpio.csv (34 archivos)
+    │   ├── Cursadas\            ← Cursadas_[YYYY-NS]_limpio.csv (33 archivos)
+    │   ├── Cancelaciones\       ← Cancelaciones_[YYYY-NS]_limpio.csv (32 archivos)
+    │   ├── Egresados\           ← Egresados_[YYYY-NS]_limpio.csv (33 archivos)
+    │   └── Retirados\           ← Retirados_limpio.csv (archivo único — sin semestres)
     ├── panel\                   ← panel maestro
     ├── muestras\                ← muestras
     └── outputs\                 ← tablas y figuras
@@ -272,6 +277,22 @@ Los diccionarios ya fueron creados por Mauricio Hernandez. Cada RA debe **comple
 Un script por fuente en `1_LimpiezaDatos/`. Cada uno lee los archivos originales de `DatosOriginales/`, aplica la limpieza y guarda un CSV limpio **por semestre** en `DatosArmonizados/2_DatosLimpios/[modulo]/`.
 **Regla:** nunca modificar los archivos de `DatosOriginales/`.
 
+### Regla de privacidad — Sin PII en archivos limpios
+
+> **Los archivos limpios no pueden contener ninguna variable que identifique directamente o indirectamente a un estudiante.**
+
+Esto incluye, pero no se limita a:
+
+| Tipo | Ejemplos de variables a eliminar |
+|---|---|
+| Identificadores directos | nombre, correo, cédula, código de estudiante, fecha de nacimiento |
+| Identificadores indirectos | dirección de residencia, teléfono, municipio de residencia a nivel detallado |
+| Variables académicas con identificación | nombre del director de tesis, título de la tesis |
+
+Las variables indirectas **no se pierden** — se conservan en los archivos originales en `DatosOriginales/` y podrán limpiarse y armonizarse en una fase posterior cuando el equipo decida incluirlas. **No eliminar del archivo original; solo excluir del output limpio.**
+
+Si un RA detecta una variable que podría identificar estudiantes y no está listada arriba, debe documentarla en su reporte semanal y consultarle al PI/CoPI antes de decidir si incluirla o excluirla.
+
 | RA | Tarea central | Script | Output en `DatosArmonizados/2_DatosLimpios/` |
 |---|---|---|---|
 | Nicolas Camacho | Estandarizar variables de programa, período, estrato, PBM; detectar duplicados | `03_limpieza_Matriculados_NC.[ext]` | `Matriculado/Matriculados_[YYYY-NS]_limpio.csv` — un CSV por semestre |
@@ -358,6 +379,8 @@ Muestra aleatoria estratificada 5%, estratificada por período y programa. Semil
 | Archivo | Ubicación en Drive | Descripción |
 |---|---|---|
 | `MASTER_PERSONAS_ANON.csv` | `DatosArmonizados/1_DatosAnonimizados/` | Dataset maestro de personas anonimizado |
+| `[Modulo]_[YYYY-NS]_limpio.csv` | `DatosArmonizados/2_DatosLimpios/[Modulo]/` | Un CSV limpio por semestre por módulo (Matriculados, Cursadas, Cancelaciones, Egresados) |
+| `Retirados_limpio.csv` | `DatosArmonizados/2_DatosLimpios/Retirados/` | Archivo único limpio para Retirados |
 | `BASE_FCE_ARMONIZADA.csv` | `FinalWorkingDataSets/` | Panel maestro completo |
 | `MUESTRA_FCE_5PCT.csv` | `DatosArmonizados/muestras/` | Muestra para uso en curso |
 | `LLAVE_ID_UNAL_FCE.csv` | `DatosArmonizados/keys/` | Crosswalk `id_unal` ↔ ID real (confidencial) |

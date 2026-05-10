@@ -82,6 +82,16 @@ MAPEO_COLUMNAS = {
 
     # correo
     "EMAIL": "CORREO",
+
+    # nivel titulo (columna fuente: NIVEL)
+    "NIVEL": "NIVEL_TITULO",
+
+    # modalidad (columna fuente: MODALIDAD_TG)
+    "MODALIDAD_TG": "MODALIDAD",
+
+    # cod plan
+    "COD_PLAN": "COD_PLAN",
+    "CODIGO_PLAN": "COD_PLAN",
 }
 
 
@@ -121,7 +131,48 @@ def homologar_columnas(df):
     return df.rename(columns=nuevas)
 
 #%% =============================================================================
-# 5. LIMPIEZA POR ARCHIVO
+# 5. DIAGNÓSTICO: Valores únicos de campos a armonizar (revisar antes de mapear)
+# =============================================================================
+
+_campos_unicos = {"NIVEL_TITULO": {}, "MODALIDAD": {}, "COD_PLAN": {}}
+
+for _archivo in listar_archivos():
+    _df = homologar_columnas(cargar_archivo(_archivo))
+    _sem = _archivo.stem
+    for _campo in _campos_unicos:
+        if _campo in _df.columns:
+            _uniq = sorted(_df[_campo].dropna().str.strip().str.upper().unique())
+            _campos_unicos[_campo][_sem] = _uniq
+
+print("\n" + "=" * 70)
+print("NIVEL_TITULO — valores únicos globales")
+print("=" * 70)
+for v in sorted({v for vals in _campos_unicos["NIVEL_TITULO"].values() for v in vals}):
+    print(f"  {v!r}")
+
+print("\n" + "=" * 70)
+print("MODALIDAD — valores únicos por semestre")
+print("=" * 70)
+for _sem, vals in _campos_unicos["MODALIDAD"].items():
+    print(f"\n  {_sem}")
+    for v in vals:
+        print(f"    {v!r}")
+
+print("\n" + "-" * 70)
+print("MODALIDAD — valores únicos globales")
+print("-" * 70)
+for v in sorted({v for vals in _campos_unicos["MODALIDAD"].values() for v in vals}):
+    print(f"  {v!r}")
+
+print("\n" + "=" * 70)
+print("COD_PLAN — resumen")
+print("=" * 70)
+_cod_global = sorted({v for vals in _campos_unicos["COD_PLAN"].values() for v in vals})
+print(f"  Total códigos únicos: {len(_cod_global)}")
+print(f"  Primeros 20: {_cod_global[:20]}")
+
+#%% =============================================================================
+# 6. LIMPIEZA POR ARCHIVO
 # =============================================================================
 def normalizar_texto(
     serie: pd.Series,
@@ -185,6 +236,118 @@ def armonizar_sexo(sexo_raw: pd.Series, genero_raw: pd.Series) -> pd.Series:
     return base.map(mapa).fillna(base)
 
 
+MAPEO_NIVEL_TITULO = {
+    "PREGRADO": "PREGRADO",
+    "ESPECIALIZACION": "ESPECIALIZACION",
+    "ESPECIALIDAD": "ESPECIALIZACION",   # variante presente en los datos
+    "MAESTRIA": "MAESTRIA",
+    "DOCTORADO": "DOCTORADO",
+}
+
+def armonizar_nivel_titulo(serie: pd.Series) -> pd.Series:
+    norm = normalizar_texto(serie, upper=True)
+    resultado = norm.map(lambda x: MAPEO_NIVEL_TITULO.get(x, x) if pd.notna(x) else pd.NA)
+    no_mapeados = set(norm.dropna()) - set(MAPEO_NIVEL_TITULO)
+    if no_mapeados:
+        print(f"  [nivel_titulo] valores sin mapeo: {sorted(no_mapeados)}")
+    return resultado
+
+
+MAPEO_MODALIDAD = {
+    # Tesis
+    "TESIS": "TESIS",
+    "TESIS DE DOCTORADO": "TESIS",
+    "TESIS DE MAESTRIA": "TESIS",
+    # Trabajo de grado
+    "TRABAJO DE GRADO": "TRABAJO_DE_GRADO",
+    "TRABAJO ESCRITO": "TRABAJO_DE_GRADO",
+    "TRABAJO FINAL": "TRABAJO_DE_GRADO",
+    "TRABAJO FINAL DE MAESTRIA": "TRABAJO_DE_GRADO",
+    # Trabajos investigativos (todos los subtipos)
+    "TRABAJOS INVESTIGATIVOS": "TRABAJO_INVESTIGATIVO",
+    "TRABAJOS INVESTIGATIVOS / PROYECTO FINAL": "TRABAJO_INVESTIGATIVO",
+    "TRABAJOS INVESTIGATIVOS / TRABAJO MONOGRAFICO": "TRABAJO_INVESTIGATIVO",
+    "TRABAJOS INVESTIGATIVOS /TRABAJO MONOGRAFICO": "TRABAJO_INVESTIGATIVO",
+    "TRABAJOS INVESTIGATIVOS / PARTICIPACION EN PROYECTOS DE INVESTIGACION": "TRABAJO_INVESTIGATIVO",
+    "TRABAJOS INVESTIGATIVOS / PASANTIAS": "TRABAJO_INVESTIGATIVO",
+    "TRABAJOS INVESTIGATIVOS / ASIGNATURAS DE POSGRADO": "TRABAJO_INVESTIGATIVO",
+    # Prácticas de extensión (todos los subtipos)
+    "PRACTICAS DE EXTENSION / PASANTIAS": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / INTERNADOS MEDICOS": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / PARTICIPACION EN PROGRAMAS DOCENTE-ASISTENCIALES": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / PARTICIPACION EN PROYECTOS DE INVESTIGACION": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / EMPRENDIMIENTO EMPRESARIAL": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / PROYECTO FINAL": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / PROYECTO SOCIAL": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / TRABAJO MONOGRAFICO": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / ASIGNATURAS DE POSGRADO": "PRACTICA_EXTENSION",
+    # Opción de grado
+    "OPCION DE GRADO": "OPCION_GRADO",
+    "OPCION DE GRADO / ASIGNATURAS DE POSGRADO": "OPCION_GRADO",
+    "OPCION DE GRADO / PROYECTO FINAL": "OPCION_GRADO",
+    # Pasantía
+    "PASANTIA": "PASANTIA",
+    "PASANTIA COLECTIVO ORLANDO FALS BORDA": "PASANTIA",
+    # Examen
+    "EXAMEN DE HABILIDADES INSTRUMENTALES": "EXAMEN",
+    "ACTIVIDADES ESPECIALES / EXAMENES PREPARATORIOS": "EXAMEN",
+    # Producción artística
+    "OBRAS DE CREACION ARTISTICA O PROYECTOS DE DISENO": "PRODUCCION_ARTISTICA",
+    "PRODUCCION AUDIOVISUAL": "PRODUCCION_ARTISTICA",
+}
+
+_CATEGORIAS_MODALIDAD = set(MAPEO_MODALIDAD.values())
+
+def armonizar_modalidad(serie: pd.Series) -> pd.Series:
+    norm = normalizar_texto(serie, upper=True)
+    mapeada = norm.map(lambda x: MAPEO_MODALIDAD.get(x, x) if pd.notna(x) else pd.NA)
+    # Valores no reconocidos (ruido, errores de captura) → NA con aviso
+    no_canonicos = {x for x in mapeada.dropna() if x not in _CATEGORIAS_MODALIDAD}
+    if no_canonicos:
+        print(f"  [modalidad] valores fuera del canónico → NA: {sorted(no_canonicos)}")
+    return mapeada.map(lambda x: x if pd.notna(x) and x in _CATEGORIAS_MODALIDAD else pd.NA)
+
+
+def estandarizar_cod_plan(serie: pd.Series) -> pd.Series:
+    return (
+        serie.astype(str)
+        .str.strip()
+        .replace({"nan": pd.NA, "None": pd.NA, "": pd.NA, "<NA>": pd.NA})
+    )
+
+
+# CORREO se conserva: se usará para anonimización en una fase posterior
+COLUMNAS_PII = [
+    "NOMBRES", "APELLIDO1", "APELLIDO2",
+    "NUMERO_DOCUMENTO", "TIPO_DOCUMENTO",
+    "FECHA_NACIMIENTO",
+    "NOMBRE_DIRECTOR", "TITULO_TESIS",
+    "NOMBRE_TRABAJO_GR",
+    "DOC_DIRECTOR", "DIRECTOR",
+    "DOC_CODIRECTOR", "CODIRECTOR",
+    "DIRECCION_PROCEDENCIA", "TEL_PROCEDENCIA",
+    "CARNET_UN",
+]
+
+def eliminar_pii(df: pd.DataFrame) -> pd.DataFrame:
+    cols_a_eliminar = [c for c in COLUMNAS_PII if c in df.columns]
+    return df.drop(columns=cols_a_eliminar)
+
+
+def convertir_decimal_a_coma(df: pd.DataFrame) -> pd.DataFrame:
+    """Reemplaza el punto decimal por coma en columnas numéricas string.
+
+    Necesario porque Excel con locale colombiano interpreta el punto como
+    separador de miles y convierte '3.96' en 396.
+    Solo afecta strings con formato puro dígitos.punto.dígitos (ej. '3.96').
+    """
+    df = df.copy()
+    patron = r"^(\d+)\.(\d+)$"
+    for col in df.columns:
+        if df[col].dtype == object:
+            df[col] = df[col].str.replace(patron, r"\1,\2", regex=True)
+    return df
+
 
 def limpiar_archivo(df, nombre_archivo):
 
@@ -204,10 +367,19 @@ def limpiar_archivo(df, nombre_archivo):
 
 
     if "SEXO" in df.columns or "GENERO" in df.columns:
-            df["SEXO"] = armonizar_sexo(
-                obtener_serie(df, "SEXO"),
-                obtener_serie(df, "GENERO")
-            )
+        df["SEXO"] = armonizar_sexo(
+            obtener_serie(df, "SEXO"),
+            obtener_serie(df, "GENERO")
+        )
+
+    if "NIVEL_TITULO" in df.columns:
+        df["NIVEL_TITULO"] = armonizar_nivel_titulo(df["NIVEL_TITULO"])
+
+    if "MODALIDAD" in df.columns:
+        df["MODALIDAD"] = armonizar_modalidad(df["MODALIDAD"])
+
+    if "COD_PLAN" in df.columns:
+        df["COD_PLAN"] = estandarizar_cod_plan(df["COD_PLAN"])
 
     antes = len(df)
     df = df.drop_duplicates()
@@ -220,7 +392,7 @@ def limpiar_archivo(df, nombre_archivo):
     return df
 
 #%% =============================================================================
-# 6. LIMPIAR TODOS LOS ARCHIVOS
+# 7. LIMPIAR TODOS LOS ARCHIVOS
 # =============================================================================
 
 dfs_limpios = []
@@ -241,13 +413,13 @@ for df in dfs_limpios[1:]:
             columnas_globales.append(col)
 
 #%% =============================================================================
-# 7. ESQUEMA GLOBAL (UNIÓN DE COLUMNAS)
+# 8. ESQUEMA GLOBAL (UNIÓN DE COLUMNAS)
 # =============================================================================
 
 print("Total columnas finales:", len(columnas_globales))
 
 #%% =============================================================================
-# 8. ALINEAR COLUMNAS
+# 9. ALINEAR COLUMNAS
 # =============================================================================
 
 def alinear_columnas(df, columnas_objetivo):
@@ -266,37 +438,42 @@ dfs_finales = [
 
 
 #%% =============================================================================
-# 9. GUARDAR CSV LIMPIOS
+# 10. GUARDAR CSV LIMPIOS
 # =============================================================================
 
 for df, archivo in zip(dfs_finales, archivos):
 
     output_path = DIR_OUTPUT / f"{archivo.stem}_limpio.csv"
 
-    df.to_csv(output_path, index=False, encoding="utf-8-sig")
+    (
+        df
+        .pipe(eliminar_pii)
+        .pipe(convertir_decimal_a_coma)
+        .to_csv(output_path, index=False, encoding="utf-8-sig", sep=";")
+    )
 
 print(" Archivos guardados correctamente")
 #%% ==============================================================================
-# 10. VALIDACIÓN: Revisar columnas en los CSV generados
+# 11. VALIDACIÓN: Revisar columnas en los CSV generados
 # ================================================================================
 columnas_totales = set()
 
 for archivo in DIR_OUTPUT.glob("*.csv"):
-    df = pd.read_csv(archivo, nrows=0)
+    df = pd.read_csv(archivo, nrows=0, sep=";")
     columnas_totales.update(df.columns)
 
 print("\n Columnas globales:")
 print(sorted(columnas_totales))
 # %%
 for archivo in DIR_OUTPUT.glob("*.csv"):
-    df = pd.read_csv(archivo, nrows=0)  # solo carga columnas
+    df = pd.read_csv(archivo, nrows=0, sep=";")  # solo carga columnas
     print(f"\n {archivo.name}")
     print(df.columns.tolist())
 # %%
 listas = []
 
 for archivo in DIR_OUTPUT.glob("*.csv"):
-    df = pd.read_csv(archivo, nrows=0)
+    df = pd.read_csv(archivo, nrows=0, sep=";")
     listas.append(set(df.columns))
 
 base = listas[0]
