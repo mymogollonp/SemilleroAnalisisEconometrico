@@ -398,20 +398,19 @@ write_csv(
 #4. Resumen del resultados------------------------------------------------------
 
 #La consolidación del master de personas integró 474.867 registros provenientes 
-#de los cinco módulos — matriculados (139.590), cursadas (142.519), cancelaciones
+#de los cinco módulos — matriculados (139.590), cursadas (142.519), cancelaciones 
 #(76.415), egresados (74.949) y retirados (41.394) — y los deduplicó a 148.565 
 #correos únicos. Solo 6 registros quedaron fuera del master por no tener correo 
 #institucional (1 de egresados y 5 de retirados), lo que representa una cobertura 
 #prácticamente total. En cuanto a la presencia por módulos, la mayoría de los 
 #correos aparece en 3 o 4 módulos (60.810 y 53.305 respectivamente), 17.849 en 
 #2, 9.873 en solo 1, y 6.728 en los 5 módulos simultáneamente.
-#Se identificaron 105.936 correos con al menos un conflicto entre módulos. Las 
+#Se identificaron 78.840 correos con al menos un conflicto entre módulos. Las 
 #variables con mayor disonencia son nombre completo (51.122 correos con más de 
-#un valor) y fecha de nacimiento (49.057), seguidas por apertura (34.529), tipo 
-#de documento (11.916) y sexo (2.698); número de documento presenta el menor 
-#nivel de conflicto con apenas 116 casos. En cuanto al máximo de variantes 
+#un valor) y apertura (34.529), seguidas por tipo de documento (11.916) y sexo 
+#(2.698); número de documento y fecha de nacimiento presentan los menores niveles 
+#de conflicto con 116 y 16 casos respectivamente. En cuanto al máximo de variantes 
 #observado por persona, apertura es la variable más volátil con hasta 7 valores 
-#distintos para un mismo correo, seguida por nombre completo con 5, sexo con 3 y
-#número de documento con 3, mientras que tipo de documento y fecha de nacimiento
-#llegan a un máximo de 2 variantes.
-
+#distintos para un mismo correo, seguida por nombre completo con 5, sexo y número 
+#de documento con 3, mientras que tipo de documento y fecha de nacimiento llegan 
+#a un máximo de 2 variantes.
