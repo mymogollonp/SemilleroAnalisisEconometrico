@@ -182,7 +182,7 @@ def armonizar_pii_egresados(
     sexo = armonizar_sexo(sexo_raw, genero_raw)
 
     fecha_nacimiento = obtener_serie(df, "FECHA_NACIMIENTO")
-    fecha_nacimiento = pd.to_datetime(fecha_nacimiento, errors="coerce")
+    fecha_nacimiento = pd.to_datetime(fecha_nacimiento, errors="coerce").dt.date
 
     apertura = obtener_serie(df, "APERTURA", upper=True)
 
