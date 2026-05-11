@@ -406,6 +406,7 @@ def reportar_vars_intermitentes(df: pd.DataFrame, log_lines: list):
 # =============================================================================
 
 VARS_CANONICAS = [
+    "is_duplicado",
     # Identificación del estudiante — nombres canónicos del proyecto
     "correo",
     "tipo_documento",       # no existe en Cancelaciones → vacía
@@ -560,7 +561,7 @@ def main():
     if "correo" in df_final.columns:
         n_personas = df_final["correo"].nunique(dropna=True)
         log_lines.append(f"  Estudiantes únicos:     {df_final['correo'].nunique():>10,}")
-    n_dup_flag = df_final["is_duplicado"].sum() if "is_duplicado" in df_final.columns else "N/A"
+    n_dup_flag = int(df_final["is_duplicado"].astype(bool).sum()) if "is_duplicado" in df_final.columns else "N/A"
     log_lines.append(f"  Filas marcadas dup:     {n_dup_flag}")
 
     # 8g. Guardar CSV limpio
