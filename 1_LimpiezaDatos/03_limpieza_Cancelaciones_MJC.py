@@ -558,9 +558,8 @@ def main():
     log_lines.append(f"  Períodos cubiertos:     {df_final['PERIODO'].nunique():>10,}  "
                      f"({df_final['PERIODO'].min()} → {df_final['PERIODO'].max()})")
     if "correo" in df_final.columns:
-        n_personas = df_final["correo"].nunique(dropna=True)
         log_lines.append(f"  Estudiantes únicos:     {df_final['correo'].nunique():>10,}")
-    n_dup_flag = int(df_final["is_duplicado"].astype(bool).sum()) if "is_duplicado" in df_final.columns else "N/A"
+    n_dup_flag = df_final["is_duplicado"].sum() if "is_duplicado" in df_final.columns else "N/A"
     log_lines.append(f"  Filas marcadas dup:     {n_dup_flag}")
 
     # 8g. Guardar CSV limpio
