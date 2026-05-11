@@ -406,7 +406,6 @@ def reportar_vars_intermitentes(df: pd.DataFrame, log_lines: list):
 # =============================================================================
 
 VARS_CANONICAS = [
-    "is_duplicado",
     # Identificación del estudiante — nombres canónicos del proyecto
     "correo",
     "tipo_documento",       # no existe en Cancelaciones → vacía
