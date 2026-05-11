@@ -61,12 +61,12 @@
 **Input:** archivos originales de `DatosOriginales/Egresados/`
 **Output:** `DatosArmonizados/2_DatosLimpios/Egresados/Egresados_[YYYY-NS]_limpio.csv`
 
-- `[ ]` Armonizar `tipo_titulo` o `nivel_titulo` — identificar todos los valores únicos y mapear a categorías canónicas (ej. pregrado, especialización, maestría, doctorado); documentar el mapeo en este reporte
-- `[ ]` Armonizar `modalidad` si existe — identificar variantes y colapsar
-- `[ ]` Estandarizar `cod_plan` — verificar formato consistente entre semestres
-- `[ ]` Verificar que el output **no contiene PII** (ver regla de privacidad en WORKPLAN Fase 3): confirmar que nombre, correo, cédula, nombre del director de tesis, título de la tesis y cualquier identificador directo o indirecto fue eliminado
+- `[x]` Armonizar `tipo_titulo` o `nivel_titulo` — identificar todos los valores únicos y mapear a categorías canónicas (ej. pregrado, especialización, maestría, doctorado); documentar el mapeo en este reporte
+- `[x]` Armonizar `modalidad` si existe — identificar variantes y colapsar
+- `[x]` Estandarizar `cod_plan` — verificar formato consistente entre semestres
+- `[x]` Verificar que el output **no contiene PII** (ver regla de privacidad en WORKPLAN Fase 3): confirmar que nombre, correo, cédula, nombre del director de tesis, título de la tesis y cualquier identificador directo o indirecto fue eliminado
 - `[ ]` Guardar un CSV limpio **por semestre** en `DatosArmonizados/2_DatosLimpios/Egresados/`
-- `[ ]` Hacer **commit y push** del script
+- `[x]` Hacer **commit y push** del script
 
 ---
 
@@ -76,9 +76,9 @@
 **Input:** `DatosOriginales/Retirados/Retirados_desde_2009.xlsx`
 **Output:** `DatosArmonizados/2_DatosLimpios/Retirados/Retirados_limpio.csv` (archivo único)
 
-- `[ ]` Armonizar `tipo_retiro` o `causal_retiro` — identificar todos los valores únicos y mapear a categorías canónicas; documentar el mapeo en este reporte
-- `[ ]` Verificar que el período de retiro está en formato `YYYY-NS`; corregir variantes
-- `[ ]` Verificar que el output **no contiene PII** (ver regla de privacidad en WORKPLAN Fase 3)
+- `[x]` Armonizar `tipo_retiro` o `causal_retiro` — identificar todos los valores únicos y mapear a categorías canónicas; documentar el mapeo en este reporte
+- `[x]` Verificar que el período de retiro está en formato `YYYY-NS`; corregir variantes
+- `[x]` Verificar que el output **no contiene PII** (ver regla de privacidad en WORKPLAN Fase 3)
 - `[ ]` Guardar `Retirados_limpio.csv` en `DatosArmonizados/2_DatosLimpios/Retirados/`
 - `[ ]` Hacer **commit y push** del script
 
@@ -110,28 +110,40 @@
 ---
 
 ## Preguntas para el PI/CoPI
+Existen columnas que no sé si debo retirar en los archivos limpios, estas son: hist_academica, SNIES, y diploma.
 
--
 
 ---
 
 ## Comentarios adicionales
-
+Aún no se elimina la columna correo en los archivos de limpieza, esto para realizar posteriormente el proceso de anonimización.
 **¿Se encontró `fecha_nacimiento` en Egresados?** Sí 
 
 **¿Se encontró `fecha_nacimiento` en Retirados?** No
 
 **Valores únicos de `tipo_titulo` / `nivel_titulo` encontrados en Egresados:** (completar)
 
+La columna NIVEL en ambos módulos tiene 5 valores: PREGRADO, ESPECIALIZACIÓN, ESPECIALIDAD, MAESTRÍA, DOCTORADO
+
 **Mapeo aplicado para `tipo_titulo`:** (completar)
+
+Argumento que especialidad y especialización son lo mismo, por lo que todos los valores de ESPECIALIDAD fueron convertidos a ESPECIALIZACIÓN
 
 **Valores únicos de `tipo_retiro` / `causal_retiro` encontrados en Retirados:** (completar)
 
+9
+
 **Mapeo aplicado para `tipo_retiro`:** (completar)
+
+Ninguno, ya que se verifica que entre la columna BLOQUEO (descripción del bloqueo) y la columna COD_BLOQUEO no hay inconsistencias, hay una relación 1 a 1, por lo que no vi necesario un mapeo.
 
 **N personas únicas en MASTER_PERSONAS_EGRESADOS_PII.csv:** (completar)
 
+79.948
+
 **N personas únicas en MASTER_PERSONAS_RETIRADOS_PII.csv:** (completar)
+
+41.394
 
 ---
 
@@ -139,8 +151,8 @@
 
 | Actividad | Horas |
 |---|---|
-| Completar `02_masterpersonas_Egresados_NJ` (con `fecha_nacimiento`) | |
-| Completar `02_masterpersonas_Retirados_NJ` (con `fecha_nacimiento`) | |
-| Armonizar variables categóricas en `03_limpieza_Egresados_NJ` | |
-| Armonizar variables categóricas en `03_limpieza_Retirados_NJ` | |
-| **Total** | |
+| Completar `02_masterpersonas_Egresados_NJ` (con `fecha_nacimiento`) |0|
+| Completar `02_masterpersonas_Retirados_NJ` (con `fecha_nacimiento`) |1|
+| Armonizar variables categóricas en `03_limpieza_Egresados_NJ` |2|
+| Armonizar variables categóricas en `03_limpieza_Retirados_NJ` |2|
+| **Total** |5|
