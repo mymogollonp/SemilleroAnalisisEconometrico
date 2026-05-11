@@ -9,11 +9,19 @@
 #   - Lee los .xlsx originales de DatosOriginales/Cancelaciones/ (READ-ONLY)
 #   - Estandariza nombres de variables al esquema canónico
 #   - Verifica el formato del período (YYYY-NS)
-#   - Detecta y documenta duplicados en el output consolidado
-#   - Guarda el CSV limpio en DatosArmonizados/Cancelaciones_limpio.csv
+#   - Armoniza tipo_cancelacion → categorías canónicas
+#   - Armoniza cod_plan → formato estándar sin ceros ni guiones
+#   - Armoniza nivel_formacion si existe → colapsa variantes
+#   - Detecta duplicados exactos y por llave natural; guarda archivo aparte
+#   - Verifica ausencia de PII en el output final
+#   - Guarda un CSV limpio por semestre en DatosArmonizados/2_DatosLimpios/Cancelaciones/
+#   - Guarda el CSV consolidado limpio en DatosArmonizados/2_DatosLimpios/Cancelaciones/
+#         logs/limpieza_Cancelaciones_YYYY-MM-DD.txt
 #
 # Input:  DatosOriginales/Cancelaciones/*.xlsx
-# Output: DatosArmonizados/2_DatosLimpios/Cancelaciones_limpio.csv
+# Output: DatosArmonizados/2_DatosLimpios/Cancelaciones/Cancelaciones_<PERIODO>.csv
+#         DatosArmonizados/2_DatosLimpios/Cancelaciones/Cancelaciones_limpio.csv
+#         DatosArmonizados/2_DatosLimpios/Cancelaciones/duplicados_llave_natural.csv
 #         logs/limpieza_Cancelaciones_YYYY-MM-DD.txt
 #
 # REGLA: nunca modificar los archivos de DatosOriginales/.
@@ -27,7 +35,7 @@ from pathlib import Path
 from datetime import date
 
 # =============================================================================
-# 0. RUTAS — via config.py centralizado
+# 1. RUTAS — via config.py centralizado
 # =============================================================================
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -122,6 +130,75 @@ def reportar_duplicados(df: pd.DataFrame, llave: list, contexto: str, log_lines:
     df["is_duplicado"] = mask_dup
     return df
 
+# =============================================================================
+# 3b. DUPLICADOS EXACTOS vs LLAVE NATURAL (semana 03)
+#     - Duplicados exactos: todas las columnas iguales → se elimina la copia,
+#       se conserva una sola fila. Regla de desempate: keep='first'.
+#     - Duplicados por llave natural: mismo correo + PERIODO + COD_PLAN +
+#       COD_ASIGNATURA pero con alguna diferencia en otras columnas → se
+#       guardan en un archivo aparte para consulta con PI/CoPI.
+#       En el panel final se conserva la primera ocurrencia (keep='first')
+#       hasta que PI/CoPI indique la regla definitiva.
+#
+#  *** CONSULTAR CON PI/CoPI antes de aplicar la regla definitiva. ***
+# =============================================================================
+ 
+def resolver_duplicados(df: pd.DataFrame, llave: list, log_lines: list,
+                        ruta_dup_nat: Path) -> pd.DataFrame:
+    """
+    1. Elimina duplicados exactos (todas las columnas iguales), keep='first'.
+    2. Identifica duplicados por llave natural (misma llave, filas distintas).
+       Guarda esos grupos en 'duplicados_llave_natural.csv' para revisión.
+       Aplica keep='first' como regla provisional hasta instrucción de PI/CoPI.
+    Retorna el DataFrame sin duplicados.
+    """
+    n_antes = len(df)
+ 
+    # --- Paso 1: duplicados exactos ---
+    mask_exactos = df.duplicated(keep=False)
+    n_exactos_grupos = df[mask_exactos].shape[0]
+    df_sin_exactos = df.drop_duplicates(keep="first").copy()
+    n_eliminados_exactos = n_antes - len(df_sin_exactos)
+ 
+    log_lines.append(f"\n--- Resolución de duplicados (semana 03) ---")
+    log_lines.append(f"  Filas antes:                    {n_antes:>10,}")
+    log_lines.append(f"  Filas en duplicados exactos:    {n_exactos_grupos:>10,}")
+    log_lines.append(f"  Filas eliminadas (exactos):     {n_eliminados_exactos:>10,}  "
+                     f"[regla: keep='first']")
+ 
+    # --- Paso 2: duplicados por llave natural (tras eliminar exactos) ---
+    llave_disp = [c for c in llave if c in df_sin_exactos.columns]
+    if len(llave_disp) < len(llave):
+        log_lines.append(
+            f"  [ADVERTENCIA] Llave natural incompleta tras eliminar exactos. "
+            f"Faltantes: {set(llave) - set(llave_disp)}"
+        )
+ 
+    mask_nat = df_sin_exactos.duplicated(subset=llave_disp, keep=False)
+    n_nat = mask_nat.sum()
+    n_grupos_nat = df_sin_exactos[mask_nat].groupby(llave_disp).ngroups if n_nat > 0 else 0
+ 
+    log_lines.append(f"  Filas en dup. llave natural:    {n_nat:>10,}")
+    log_lines.append(f"  Grupos llave natural:            {n_grupos_nat:>10,}")
+ 
+    if n_nat > 0:
+        # Guardar archivo de duplicados por llave natural para revisión PI/CoPI
+        df_dup_nat = df_sin_exactos[mask_nat].copy()
+        df_dup_nat["_grupo_dup"] = df_dup_nat.groupby(llave_disp).ngroup()
+        df_dup_nat = df_dup_nat.sort_values(llave_disp)
+        df_dup_nat.to_csv(ruta_dup_nat, index=False, encoding="utf-8-sig")
+        log_lines.append(f"  → Archivo de revisión guardado: {ruta_dup_nat}")
+        log_lines.append(f"  *** PENDIENTE: consultar regla definitiva con PI/CoPI ***")
+        log_lines.append(f"  Regla provisional aplicada:     keep='first' por llave natural")
+ 
+    # Aplicar regla provisional: keep='first' por llave natural
+    df_limpio = df_sin_exactos.drop_duplicates(subset=llave_disp, keep="first").copy()
+    n_eliminados_nat = len(df_sin_exactos) - len(df_limpio)
+    log_lines.append(f"  Filas eliminadas (llave nat.):  {n_eliminados_nat:>10,}  "
+                     f"[regla provisional: keep='first']")
+    log_lines.append(f"  Filas tras resolución total:    {len(df_limpio):>10,}")
+ 
+    return df_limpio
 
 # =============================================================================
 # 4. CARGA DE ARCHIVOS
@@ -278,6 +355,19 @@ def limpiar_cancelaciones(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
             df[col] = df[col].replace("nan", np.nan)
 
     log_lines.append("  Columnas string: strip de espacios aplicado.")
+
+    # 5i. Valores únicos de TIPO_CANCELACION
+    log_lines.append("\n--- Valores únicos de TIPO_CANCELACION ---")
+
+    if "TIPO_CANCELACION" in df.columns:
+        valores_tipo = sorted(df["TIPO_CANCELACION"].dropna().unique())
+
+        log_lines.append(
+            f"  Valores únicos encontrados ({len(valores_tipo)}):"
+        )
+
+        for v in valores_tipo:
+            log_lines.append(f"    - {v}")
 
     return df
 
@@ -446,6 +536,17 @@ def main():
         )
     df = reportar_duplicados(df, llave_disponible, "panel consolidado", log_lines)
 
+    # Guardar dup llave natural
+
+    ruta_dup_nat = RUTA_OUTPUT / "duplicados_llave_natural.csv"
+
+    df = resolver_duplicados(
+        df=df,
+        llave=llave_disponible,
+        log_lines=log_lines,
+        ruta_dup_nat=ruta_dup_nat
+    )
+
     # 8e. Select final de columnas
     log_lines.append("\n[5] SELECCIÓN DE COLUMNAS FINALES")
     df_final = seleccionar_columnas(df, log_lines)
@@ -457,6 +558,7 @@ def main():
     log_lines.append(f"  Períodos cubiertos:     {df_final['PERIODO'].nunique():>10,}  "
                      f"({df_final['PERIODO'].min()} → {df_final['PERIODO'].max()})")
     if "correo" in df_final.columns:
+        n_personas = df_final["correo"].nunique(dropna=True)
         log_lines.append(f"  Estudiantes únicos:     {df_final['correo'].nunique():>10,}")
     n_dup_flag = df_final["is_duplicado"].sum() if "is_duplicado" in df_final.columns else "N/A"
     log_lines.append(f"  Filas marcadas dup:     {n_dup_flag}")
