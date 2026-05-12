@@ -110,7 +110,7 @@
 ---
 
 ## Preguntas para el PI/CoPI
-Existen columnas que no sé si debo retirar en los archivos limpios, estas son: hist_academica, SNIES, y diploma.
+Existen columnas que no sé si debo retirar en los archivos limpios, estas son: hist_academica y diploma.
 
 
 ---
