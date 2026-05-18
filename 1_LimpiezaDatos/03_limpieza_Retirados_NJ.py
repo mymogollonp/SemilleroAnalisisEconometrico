@@ -18,6 +18,8 @@ ARCHIVO_RETIRADOS = (
 OUTPUT_DIR = DIR_DATOS / "DatosArmonizados" / "retirados_limpios"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+LLAVE_PATH = Path(__file__).parent / "LLAVE_ID_UNAL_FCE.csv"
+
 
 #%% =============================================================================
 # 2. CARGA
@@ -74,6 +76,24 @@ def armonizar_nivel(serie: pd.Series) -> pd.Series:
     if no_mapeados:
         print(f"  [nivel] valores sin mapeo: {sorted(no_mapeados)}")
     return resultado
+
+
+_llave = pd.read_csv(LLAVE_PATH, dtype=str)
+_llave["correo"] = _llave["correo"].str.lower().str.strip()
+MAPA_CORREO_ID = _llave.set_index("correo")["id_unal"].to_dict()
+
+
+def anonimizar_correo(df: pd.DataFrame) -> pd.DataFrame:
+    if "CORREO" not in df.columns:
+        return df
+    df = df.copy()
+    df["CORREO"] = df["CORREO"].str.lower().str.strip()
+    sin_match = df["CORREO"].dropna()
+    sin_match = sin_match[~sin_match.isin(MAPA_CORREO_ID)]
+    if not sin_match.empty:
+        print(f"  [anonimizar] {len(sin_match)} correos sin llave: {sorted(sin_match.unique())[:5]}")
+    df["ID_UNAL"] = df["CORREO"].map(MAPA_CORREO_ID)
+    return df.drop(columns=["CORREO"])
 
 
 COLUMNAS_PII = ["DOCUMENTO", "NOMBRES_LEGAL", "APELLIDO1_LEGAL", "APELLIDO2_LEGAL"]
@@ -150,6 +170,7 @@ output_file = OUTPUT_DIR / "retirados_limpio.csv"
 (
     df
     .pipe(eliminar_pii)
+    .pipe(anonimizar_correo)
     .pipe(convertir_decimal_a_coma)
     .to_csv(output_file, index=False, encoding="utf-8-sig", sep=";")
 )

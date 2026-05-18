@@ -15,6 +15,8 @@ HOJA = "Sheet2"
 
 DIR_OUTPUT.mkdir(parents=True, exist_ok=True)
 
+LLAVE_PATH = Path(__file__).parent / "LLAVE_ID_UNAL_FCE.csv" 
+
 
 #%% =============================================================================
 # 1. UTILIDADES
@@ -138,8 +140,8 @@ _campos_unicos = {"NIVEL_TITULO": {}, "MODALIDAD": {}, "COD_PLAN": {}}
 
 for _archivo in listar_archivos():
     _df = homologar_columnas(cargar_archivo(_archivo))
-    _sem = _archivo.stem
-    for _campo in _campos_unicos:
+    _sem = _archivo.stem 
+    for _campo in _campos_unicos: 
         if _campo in _df.columns:
             _uniq = sorted(_df[_campo].dropna().str.strip().str.upper().unique())
             _campos_unicos[_campo][_sem] = _uniq
@@ -147,7 +149,7 @@ for _archivo in listar_archivos():
 print("\n" + "=" * 70)
 print("NIVEL_TITULO — valores únicos globales")
 print("=" * 70)
-for v in sorted({v for vals in _campos_unicos["NIVEL_TITULO"].values() for v in vals}):
+for v in sorted({v for vals in _campos_unicos["NIVEL_TITULO"].values() for v in vals}): 
     print(f"  {v!r}")
 
 print("\n" + "=" * 70)
@@ -239,7 +241,7 @@ def armonizar_sexo(sexo_raw: pd.Series, genero_raw: pd.Series) -> pd.Series:
 MAPEO_NIVEL_TITULO = {
     "PREGRADO": "PREGRADO",
     "ESPECIALIZACION": "ESPECIALIZACION",
-    "ESPECIALIDAD": "ESPECIALIZACION",   # variante presente en los datos
+    "ESPECIALIDAD": "ESPECIALIZACION",   
     "MAESTRIA": "MAESTRIA",
     "DOCTORADO": "DOCTORADO",
 }
@@ -254,44 +256,50 @@ def armonizar_nivel_titulo(serie: pd.Series) -> pd.Series:
 
 
 MAPEO_MODALIDAD = {
-    # Tesis
-    "TESIS": "TESIS",
-    "TESIS DE DOCTORADO": "TESIS",
-    "TESIS DE MAESTRIA": "TESIS",
-    # Trabajo de grado
-    "TRABAJO DE GRADO": "TRABAJO_DE_GRADO",
-    "TRABAJO ESCRITO": "TRABAJO_DE_GRADO",
-    "TRABAJO FINAL": "TRABAJO_DE_GRADO",
-    "TRABAJO FINAL DE MAESTRIA": "TRABAJO_DE_GRADO",
-    # Trabajos investigativos (todos los subtipos)
+    # 1. Trabajos investigativos (Art. 10 Par., Acuerdo CSU 033/2007)
+    #    Subtipos legales: Trabajo monográfico, Participación en proyectos de investigación, Proyecto final
+    #    Se incluyen tesis y trabajos de grado genéricos por su naturaleza investigativa
+    "TESIS": "TRABAJO_INVESTIGATIVO",
+    "TESIS DE DOCTORADO": "TRABAJO_INVESTIGATIVO",
+    "TESIS DE MAESTRIA": "TRABAJO_INVESTIGATIVO",
+    "TRABAJO DE GRADO": "TRABAJO_INVESTIGATIVO",
+    "TRABAJO ESCRITO": "TRABAJO_INVESTIGATIVO",
+    "TRABAJO FINAL": "TRABAJO_INVESTIGATIVO",
+    "TRABAJO FINAL DE MAESTRIA": "TRABAJO_INVESTIGATIVO",
     "TRABAJOS INVESTIGATIVOS": "TRABAJO_INVESTIGATIVO",
-    "TRABAJOS INVESTIGATIVOS / PROYECTO FINAL": "TRABAJO_INVESTIGATIVO",
     "TRABAJOS INVESTIGATIVOS / TRABAJO MONOGRAFICO": "TRABAJO_INVESTIGATIVO",
     "TRABAJOS INVESTIGATIVOS /TRABAJO MONOGRAFICO": "TRABAJO_INVESTIGATIVO",
     "TRABAJOS INVESTIGATIVOS / PARTICIPACION EN PROYECTOS DE INVESTIGACION": "TRABAJO_INVESTIGATIVO",
-    "TRABAJOS INVESTIGATIVOS / PASANTIAS": "TRABAJO_INVESTIGATIVO",
-    "TRABAJOS INVESTIGATIVOS / ASIGNATURAS DE POSGRADO": "TRABAJO_INVESTIGATIVO",
-    # Prácticas de extensión (todos los subtipos)
-    "PRACTICAS DE EXTENSION / PASANTIAS": "PRACTICA_EXTENSION",
-    "PRACTICAS DE EXTENSION / INTERNADOS MEDICOS": "PRACTICA_EXTENSION",
+    "TRABAJOS INVESTIGATIVOS / PROYECTO FINAL": "TRABAJO_INVESTIGATIVO",
+    # Subtipos de TI registrados erróneamente bajo Prácticas de extensión en la fuente
+    "PRACTICAS DE EXTENSION / TRABAJO MONOGRAFICO": "TRABAJO_INVESTIGATIVO",
+    "PRACTICAS DE EXTENSION / PARTICIPACION EN PROYECTOS DE INVESTIGACION": "TRABAJO_INVESTIGATIVO",
+    "PRACTICAS DE EXTENSION / PROYECTO FINAL": "TRABAJO_INVESTIGATIVO",
+    # 2. Prácticas de extensión (Art. 10 Par., Acuerdo CSU 033/2007)
+    #    Subtipos legales: Participación en programas docente-asistenciales, Internados médicos,
+    #                      Pasantías, Emprendimiento empresarial, Proyecto Social
     "PRACTICAS DE EXTENSION / PARTICIPACION EN PROGRAMAS DOCENTE-ASISTENCIALES": "PRACTICA_EXTENSION",
-    "PRACTICAS DE EXTENSION / PARTICIPACION EN PROYECTOS DE INVESTIGACION": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / INTERNADOS MEDICOS": "PRACTICA_EXTENSION",
+    "PRACTICAS DE EXTENSION / PASANTIAS": "PRACTICA_EXTENSION",
     "PRACTICAS DE EXTENSION / EMPRENDIMIENTO EMPRESARIAL": "PRACTICA_EXTENSION",
-    "PRACTICAS DE EXTENSION / PROYECTO FINAL": "PRACTICA_EXTENSION",
     "PRACTICAS DE EXTENSION / PROYECTO SOCIAL": "PRACTICA_EXTENSION",
-    "PRACTICAS DE EXTENSION / TRABAJO MONOGRAFICO": "PRACTICA_EXTENSION",
-    "PRACTICAS DE EXTENSION / ASIGNATURAS DE POSGRADO": "PRACTICA_EXTENSION",
-    # Opción de grado
+    # Pasantías registradas como categoría independiente o bajo Trabajos investigativos en la fuente
+    "PASANTIA": "PRACTICA_EXTENSION",
+    "PASANTIA COLECTIVO ORLANDO FALS BORDA": "PRACTICA_EXTENSION",
+    "TRABAJOS INVESTIGATIVOS / PASANTIAS": "PRACTICA_EXTENSION",
+    # 3. Actividades especiales (Art. 10 Par., Acuerdo CSU 033/2007)
+    #    Subtipos legales: Exámenes preparatorios
+    "ACTIVIDADES ESPECIALES / EXAMENES PREPARATORIOS": "ACTIVIDADES_ESPECIALES",
+    "EXAMEN DE HABILIDADES INSTRUMENTALES": "ACTIVIDADES_ESPECIALES",
+    # 4. Opción de grado (Art. 10 Par., Acuerdo CSU 033/2007)
+    #    Subtipos legales: Asignaturas de posgrado
     "OPCION DE GRADO": "OPCION_GRADO",
     "OPCION DE GRADO / ASIGNATURAS DE POSGRADO": "OPCION_GRADO",
     "OPCION DE GRADO / PROYECTO FINAL": "OPCION_GRADO",
-    # Pasantía
-    "PASANTIA": "PASANTIA",
-    "PASANTIA COLECTIVO ORLANDO FALS BORDA": "PASANTIA",
-    # Examen
-    "EXAMEN DE HABILIDADES INSTRUMENTALES": "EXAMEN",
-    "ACTIVIDADES ESPECIALES / EXAMENES PREPARATORIOS": "EXAMEN",
-    # Producción artística
+    # Asignaturas de posgrado registradas bajo otras categorías en la fuente
+    "TRABAJOS INVESTIGATIVOS / ASIGNATURAS DE POSGRADO": "OPCION_GRADO",
+    "PRACTICAS DE EXTENSION / ASIGNATURAS DE POSGRADO": "OPCION_GRADO",
+    # Producción artística (no contemplada en Art. 10 Par. — se conserva tal como está en los datos)
     "OBRAS DE CREACION ARTISTICA O PROYECTOS DE DISENO": "PRODUCCION_ARTISTICA",
     "PRODUCCION AUDIOVISUAL": "PRODUCCION_ARTISTICA",
 }
@@ -316,7 +324,28 @@ def estandarizar_cod_plan(serie: pd.Series) -> pd.Series:
     )
 
 
-# CORREO se conserva: se usará para anonimización en una fase posterior
+#%% =============================================================================
+# 6b. ANONIMIZACIÓN DE CORREO
+# =============================================================================
+
+_llave = pd.read_csv(LLAVE_PATH, dtype=str)
+_llave["correo"] = _llave["correo"].str.lower().str.strip()
+MAPA_CORREO_ID = _llave.set_index("correo")["id_unal"].to_dict()
+
+
+def anonimizar_correo(df: pd.DataFrame) -> pd.DataFrame:
+    if "CORREO" not in df.columns:
+        return df
+    df = df.copy()
+    df["CORREO"] = df["CORREO"].str.lower().str.strip()
+    sin_match = df["CORREO"].dropna()
+    sin_match = sin_match[~sin_match.isin(MAPA_CORREO_ID)]
+    if not sin_match.empty:
+        print(f"  [anonimizar] {len(sin_match)} correos sin llave: {sorted(sin_match.unique())[:5]}")
+    df["ID_UNAL"] = df["CORREO"].map(MAPA_CORREO_ID)
+    return df.drop(columns=["CORREO"])
+
+
 COLUMNAS_PII = [
     "NOMBRES", "APELLIDO1", "APELLIDO2",
     "NUMERO_DOCUMENTO", "TIPO_DOCUMENTO",
@@ -448,6 +477,7 @@ for df, archivo in zip(dfs_finales, archivos):
     (
         df
         .pipe(eliminar_pii)
+        .pipe(anonimizar_correo)
         .pipe(convertir_decimal_a_coma)
         .to_csv(output_path, index=False, encoding="utf-8-sig", sep=";")
     )
