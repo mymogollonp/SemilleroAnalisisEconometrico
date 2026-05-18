@@ -177,4 +177,87 @@ output_file = OUTPUT_DIR / "retirados_limpio.csv"
 
 print("Archivo guardado en:", output_file)
 
+#%% =============================================================================
+# 8. VERIFICACIÓN 1-a-1: COD_PROGRAMA ↔ PROGRAMA  +  Complementar diccionario
+# =============================================================================
+
+_cols_requeridas = {"COD_PROGRAMA", "PROGRAMA"}
+
+if not (_cols_requeridas <= set(df.columns)):
+    print("\n[PROGRAMAS] El archivo no contiene COD_PROGRAMA y/o PROGRAMA — sección omitida.")
+else:
+    _df_prog = (
+        df[["COD_PROGRAMA", "PROGRAMA"]]
+        .dropna(subset=["COD_PROGRAMA", "PROGRAMA"])
+        .assign(
+            COD_PROGRAMA=lambda d: d["COD_PROGRAMA"].str.strip().str.upper(),
+            PROGRAMA=lambda d: d["PROGRAMA"].str.strip().str.upper(),
+        )
+        .drop_duplicates()
+    )
+
+    # Verificación 1-a-1
+    _por_codigo = (
+        _df_prog.groupby("COD_PROGRAMA")["PROGRAMA"]
+        .nunique()
+        .reset_index()
+        .rename(columns={"PROGRAMA": "N_PROGRAMAS"})
+    )
+    _conflictos = _por_codigo[_por_codigo["N_PROGRAMAS"] > 1]
+
+    print("\n" + "=" * 70)
+    print("VERIFICACIÓN 1-a-1: COD_PROGRAMA → PROGRAMA (Retirados)")
+    print("=" * 70)
+    if _conflictos.empty:
+        print("  OK — cada código apunta a un único nombre de programa.")
+    else:
+        print(f"  CONFLICTOS: {len(_conflictos)} código(s) con más de un nombre:")
+        for _, _row in _conflictos.iterrows():
+            _nombres = sorted(
+                _df_prog.loc[
+                    _df_prog["COD_PROGRAMA"] == _row["COD_PROGRAMA"], "PROGRAMA"
+                ].unique()
+            )
+            print(f"    {_row['COD_PROGRAMA']!r}  →  {_nombres}")
+
+    # Complementar diccionario generado por el script de Egresados
+    _dict_path = (
+        DIR_DATOS
+        / "DatosArmonizados"
+        / "archivos_limpios_egresados"
+        / "diccionario_programas.xlsx"
+    )
+
+    if _dict_path.exists():
+        _dict_existente = pd.read_excel(_dict_path, dtype=str)
+        _codigos_existentes = set(_dict_existente["COD_PROGRAMA"].str.strip().str.upper())
+    else:
+        _dict_existente = pd.DataFrame(columns=["COD_PROGRAMA", "PROGRAMA(S)"])
+        _codigos_existentes = set()
+
+    _nuevos = _df_prog[~_df_prog["COD_PROGRAMA"].isin(_codigos_existentes)]
+    _nuevos_dict = (
+        _nuevos.groupby("COD_PROGRAMA")["PROGRAMA"]
+        .agg(lambda x: " | ".join(sorted(x.unique())))
+        .reset_index()
+        .rename(columns={"PROGRAMA": "PROGRAMA(S)"})
+    )
+
+    print("\n" + "-" * 70)
+    if _nuevos_dict.empty:
+        print("  Sin programas nuevos — el diccionario de Egresados ya los cubre todos.")
+    else:
+        print(f"  {len(_nuevos_dict)} programa(s) nuevos encontrados en Retirados:")
+        for _, _row in _nuevos_dict.iterrows():
+            print(f"    {_row['COD_PROGRAMA']!r}  →  {_row['PROGRAMA(S)']!r}")
+
+        _dict_actualizado = (
+            pd.concat([_dict_existente, _nuevos_dict], ignore_index=True)
+            .sort_values("COD_PROGRAMA")
+            .reset_index(drop=True)
+        )
+        _dict_actualizado.to_excel(_dict_path, index=False, sheet_name="Programas")
+        print(f"\n  Diccionario actualizado en: {_dict_path}")
+        print(f"  Total programas en el diccionario: {len(_dict_actualizado)}")
+
 # %%

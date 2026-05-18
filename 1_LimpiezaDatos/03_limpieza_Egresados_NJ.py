@@ -483,6 +483,71 @@ for df, archivo in zip(dfs_finales, archivos):
     )
 
 print(" Archivos guardados correctamente")
+
+#%% =============================================================================
+# 10b. VERIFICACIÓN 1-a-1: COD_PROGRAMA ↔ PROGRAMA  +  Diccionario de Programas
+# =============================================================================
+
+_cols_requeridas = {"COD_PROGRAMA", "PROGRAMA"}
+
+_dfs_prog = [
+    _df[["COD_PROGRAMA", "PROGRAMA"]]
+    for _df in dfs_finales
+    if _cols_requeridas <= set(_df.columns)
+]
+
+if not _dfs_prog:
+    print("\n[PROGRAMAS] Ningún archivo contiene COD_PROGRAMA y PROGRAMA — sección omitida.")
+else:
+    _df_prog = (
+        pd.concat(_dfs_prog, ignore_index=True)
+        .dropna(subset=["COD_PROGRAMA", "PROGRAMA"])
+        .assign(
+            COD_PROGRAMA=lambda d: d["COD_PROGRAMA"].str.strip().str.upper(),
+            PROGRAMA=lambda d: d["PROGRAMA"].str.strip().str.upper(),
+        )
+        .drop_duplicates()
+    )
+
+    # Verificación 1-a-1: un código → un único nombre de programa
+    _por_codigo = (
+        _df_prog.groupby("COD_PROGRAMA")["PROGRAMA"]
+        .nunique()
+        .reset_index()
+        .rename(columns={"PROGRAMA": "N_PROGRAMAS"})
+    )
+    _conflictos = _por_codigo[_por_codigo["N_PROGRAMAS"] > 1]
+
+    print("\n" + "=" * 70)
+    print("VERIFICACIÓN 1-a-1: COD_PROGRAMA → PROGRAMA")
+    print("=" * 70)
+    if _conflictos.empty:
+        print("  OK — cada código apunta a un único nombre de programa.")
+    else:
+        print(f"  CONFLICTOS: {len(_conflictos)} código(s) con más de un nombre:")
+        for _, _row in _conflictos.iterrows():
+            _nombres = sorted(
+                _df_prog.loc[
+                    _df_prog["COD_PROGRAMA"] == _row["COD_PROGRAMA"], "PROGRAMA"
+                ].unique()
+            )
+            print(f"    {_row['COD_PROGRAMA']!r}  →  {_nombres}")
+
+    # Diccionario: un registro por código (nombres concatenados si hay conflicto)
+    _diccionario = (
+        _df_prog.groupby("COD_PROGRAMA")["PROGRAMA"]
+        .agg(lambda x: " | ".join(sorted(x.unique())))
+        .reset_index()
+        .rename(columns={"PROGRAMA": "PROGRAMA(S)"})
+        .sort_values("COD_PROGRAMA")
+        .reset_index(drop=True)
+    )
+
+    _dict_path = DIR_OUTPUT / "diccionario_programas.xlsx"
+    _diccionario.to_excel(_dict_path, index=False, sheet_name="Programas")
+    print(f"\n  Diccionario guardado en: {_dict_path}")
+    print(f"  Total programas únicos: {len(_diccionario)}")
+
 #%% ==============================================================================
 # 11. VALIDACIÓN: Revisar columnas en los CSV generados
 # ================================================================================
