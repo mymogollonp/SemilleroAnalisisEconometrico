@@ -116,6 +116,10 @@ print("Primeros:", archivos[:3])
 def cargar_archivo(path):
     df = pd.read_excel(path, sheet_name=HOJA, dtype=str)
     df.columns = [limpiar_nombre_columna(c) for c in df.columns]
+    duplicadas = [c for c in df.columns if re.search(r"\.\d+$", c)]
+    if duplicadas:
+        print(f"  [cargar] columnas duplicadas descartadas en {path.name}: {duplicadas}")
+    df = df.drop(columns=duplicadas)
     return df
 
 #%% =============================================================================
@@ -382,8 +386,9 @@ def limpiar_archivo(df, nombre_archivo):
 
     df = homologar_columnas(df)
 
-    if "PERIODO" in df.columns:
-        df["PERIODO"] = df["PERIODO"].apply(estandarizar_periodo)
+    for _col_periodo in ("CONVOCATORIA", "APERTURA", "PERIODO_TERMINACION", "PER_NODO_GRADUACION"):
+        if _col_periodo in df.columns:
+            df[_col_periodo] = df[_col_periodo].apply(estandarizar_periodo)
 
     if "FECHA_GRADO" in df.columns:
         df["FECHA_GRADO"] = estandarizar_fecha(df["FECHA_GRADO"])
@@ -409,6 +414,14 @@ def limpiar_archivo(df, nombre_archivo):
 
     if "COD_PLAN" in df.columns:
         df["COD_PLAN"] = estandarizar_cod_plan(df["COD_PLAN"])
+
+    for _col_texto in (
+        "DESC_PLAN", "ACCESO", "SUBACCESO", "FACULTAD", "PROGRAMA",
+        "SEDE", "TIPO_NIVEL", "NODO_INI", "NODO_FIN",
+        "NOMBRE_DEPTO_PROCEDENCIA", "NOMBRE_MUNICIPIO_PROCEDENCIA",
+    ):
+        if _col_texto in df.columns:
+            df[_col_texto] = normalizar_texto(df[_col_texto], upper=True)
 
     antes = len(df)
     df = df.drop_duplicates()
@@ -485,21 +498,101 @@ for df, archivo in zip(dfs_finales, archivos):
 print(" Archivos guardados correctamente")
 
 #%% =============================================================================
-# 10b. VERIFICACIÓN 1-a-1: COD_PROGRAMA ↔ PROGRAMA  +  Diccionario de Programas
+# 10b. VALIDACIÓN DE PARES CÓDIGO ↔ DESCRIPCIÓN
 # =============================================================================
 
-_cols_requeridas = {"COD_PROGRAMA", "PROGRAMA"}
-
-_dfs_prog = [
-    _df[["COD_PROGRAMA", "PROGRAMA"]]
-    for _df in dfs_finales
-    if _cols_requeridas <= set(_df.columns)
+PARES_COD_DESC = [
+    ("COD_PLAN",      "DESC_PLAN"),
+    ("COD_ACCESO",    "ACCESO"),
+    ("COD_SUBACCESO", "SUBACCESO"),
+    ("COD_FACULTAD",  "FACULTAD"),
+    ("COD_PROGRAMA",  "PROGRAMA"),
+    ("COD_NIVEL",     "TIPO_NIVEL"),
+    ("COD_NOD_INI",   "NODO_INI"),
+    ("COD_NODO_FIN",  "NODO_FIN"),
 ]
 
-if not _dfs_prog:
-    print("\n[PROGRAMAS] Ningún archivo contiene COD_PROGRAMA y PROGRAMA — sección omitida.")
-else:
-    _df_prog = (
+
+def validar_par_cod_desc(dfs_lista, col_cod, col_desc):
+    fragmentos = [
+        df[[col_cod, col_desc]]
+        for df in dfs_lista
+        if {col_cod, col_desc} <= set(df.columns)
+    ]
+    if not fragmentos:
+        print(f"\n[OMITIDO] ningún archivo contiene {col_cod} y {col_desc}")
+        return
+
+    df_par = (
+        pd.concat(fragmentos, ignore_index=True)
+        .assign(**{
+            col_cod:  lambda d: d[col_cod].str.strip().str.upper(),
+            col_desc: lambda d: d[col_desc].str.strip().str.upper(),
+        })
+        .drop_duplicates()
+    )
+
+    cod_sin_desc  = df_par[df_par[col_cod].notna()  & df_par[col_desc].isna()]
+    desc_sin_cod  = df_par[df_par[col_cod].isna()   & df_par[col_desc].notna()]
+    df_completo   = df_par.dropna(subset=[col_cod, col_desc])
+
+    cod_multi_desc = (
+        df_completo.groupby(col_cod)[col_desc].nunique()
+        .reset_index(name="N")
+        .query("N > 1")
+    )
+    desc_multi_cod = (
+        df_completo.groupby(col_desc)[col_cod].nunique()
+        .reset_index(name="N")
+        .query("N > 1")
+    )
+
+    print(f"\n{'=' * 70}")
+    print(f"{col_cod} <-> {col_desc}  (pares únicos: {len(df_par)})")
+    print(f"{'=' * 70}")
+
+    if cod_sin_desc.empty:
+        print("  OK  códigos sin descripción: ninguno")
+    else:
+        print(f"  WARN  códigos sin descripción ({len(cod_sin_desc)}): "
+              f"{sorted(cod_sin_desc[col_cod].unique())[:10]}")
+
+    if desc_sin_cod.empty:
+        print("  OK  descripciones sin código: ninguna")
+    else:
+        print(f"  WARN  descripciones sin código ({len(desc_sin_cod)}): "
+              f"{sorted(desc_sin_cod[col_desc].unique())[:10]}")
+
+    if cod_multi_desc.empty:
+        print("  OK  cada código apunta a una única descripción")
+    else:
+        print(f"  WARN  códigos con múltiples descripciones ({len(cod_multi_desc)}):")
+        for _, row in cod_multi_desc.iterrows():
+            vals = sorted(df_completo.loc[df_completo[col_cod] == row[col_cod], col_desc].unique())
+            print(f"      {row[col_cod]!r} -> {vals}")
+
+    if desc_multi_cod.empty:
+        print("  OK  cada descripción apunta a un único código")
+    else:
+        print(f"  WARN  descripciones con múltiples códigos ({len(desc_multi_cod)}):")
+        for _, row in desc_multi_cod.iterrows():
+            vals = sorted(df_completo.loc[df_completo[col_desc] == row[col_desc], col_cod].unique())
+            print(f"      {row[col_desc]!r} <- {vals}")
+
+
+print("VALIDACIÓN DE PARES CÓDIGO <-> DESCRIPCIÓN")
+for _col_cod, _col_desc in PARES_COD_DESC:
+    validar_par_cod_desc(dfs_finales, _col_cod, _col_desc)
+
+#%% Diccionario de programas (Excel) — solo para COD_PROGRAMA <-> PROGRAMA
+_dfs_prog = [
+    df[["COD_PROGRAMA", "PROGRAMA"]]
+    for df in dfs_finales
+    if {"COD_PROGRAMA", "PROGRAMA"} <= set(df.columns)
+]
+
+if _dfs_prog:
+    _diccionario = (
         pd.concat(_dfs_prog, ignore_index=True)
         .dropna(subset=["COD_PROGRAMA", "PROGRAMA"])
         .assign(
@@ -507,46 +600,70 @@ else:
             PROGRAMA=lambda d: d["PROGRAMA"].str.strip().str.upper(),
         )
         .drop_duplicates()
-    )
-
-    # Verificación 1-a-1: un código → un único nombre de programa
-    _por_codigo = (
-        _df_prog.groupby("COD_PROGRAMA")["PROGRAMA"]
-        .nunique()
-        .reset_index()
-        .rename(columns={"PROGRAMA": "N_PROGRAMAS"})
-    )
-    _conflictos = _por_codigo[_por_codigo["N_PROGRAMAS"] > 1]
-
-    print("\n" + "=" * 70)
-    print("VERIFICACIÓN 1-a-1: COD_PROGRAMA → PROGRAMA")
-    print("=" * 70)
-    if _conflictos.empty:
-        print("  OK — cada código apunta a un único nombre de programa.")
-    else:
-        print(f"  CONFLICTOS: {len(_conflictos)} código(s) con más de un nombre:")
-        for _, _row in _conflictos.iterrows():
-            _nombres = sorted(
-                _df_prog.loc[
-                    _df_prog["COD_PROGRAMA"] == _row["COD_PROGRAMA"], "PROGRAMA"
-                ].unique()
-            )
-            print(f"    {_row['COD_PROGRAMA']!r}  →  {_nombres}")
-
-    # Diccionario: un registro por código (nombres concatenados si hay conflicto)
-    _diccionario = (
-        _df_prog.groupby("COD_PROGRAMA")["PROGRAMA"]
+        .groupby("COD_PROGRAMA")["PROGRAMA"]
         .agg(lambda x: " | ".join(sorted(x.unique())))
         .reset_index()
         .rename(columns={"PROGRAMA": "PROGRAMA(S)"})
         .sort_values("COD_PROGRAMA")
         .reset_index(drop=True)
     )
-
     _dict_path = DIR_OUTPUT / "diccionario_programas.xlsx"
     _diccionario.to_excel(_dict_path, index=False, sheet_name="Programas")
-    print(f"\n  Diccionario guardado en: {_dict_path}")
+    print(f"\n  Diccionario de programas guardado en: {_dict_path}")
     print(f"  Total programas únicos: {len(_diccionario)}")
+
+#%% =============================================================================
+# 10c. VALIDACIÓN DE NOTAS (PROMEDIOS)
+# =============================================================================
+
+COLS_NOTAS = [
+    "PAPA_SIN_REDONDEO",
+    "PAPA",
+    "PROM_ACAD_SIN_REDONDEO",
+    "PROM_ACADEMICO",
+    "PROM_GRADUADO_SIN_REDONDEO",
+    "PROM_GRADUADO_SIN_REDONDEDO",   # nombre con typo en algunos archivos fuente
+    "PROM_GRADUADO",
+]
+
+RANGO_NOTAS = (0.0, 5.0)
+
+
+def validar_notas(dfs_lista, columnas, rango=RANGO_NOTAS):
+    print("\nVALIDACIÓN DE NOTAS")
+
+    for col in columnas:
+        fragmentos = [df[col] for df in dfs_lista if col in df.columns]
+        if not fragmentos:
+            continue
+
+        serie = pd.concat(fragmentos, ignore_index=True)
+        serie_num = pd.to_numeric(serie, errors="coerce")
+
+        n_total       = len(serie)
+        n_nulos_orig  = serie.isna().sum()
+        n_no_numeric  = int(serie_num.isna().sum() - n_nulos_orig)
+        n_validos     = int(serie_num.notna().sum())
+        fuera_rango   = serie_num[(serie_num < rango[0]) | (serie_num > rango[1])]
+
+        print(f"\n{'=' * 70}")
+        print(f"{col}  (filas totales: {n_total})")
+        print(f"{'=' * 70}")
+        print(f"  Nulos           : {n_nulos_orig}")
+        print(f"  No numéricos    : {n_no_numeric}")
+        print(f"  Válidos         : {n_validos}")
+
+        if n_validos > 0:
+            print(f"  Min / Max       : {serie_num.min():.4f} / {serie_num.max():.4f}")
+
+            if fuera_rango.empty:
+                print(f"  OK  todos los valores están en [{rango[0]}, {rango[1]}]")
+            else:
+                print(f"  WARN  {len(fuera_rango)} valores fuera de [{rango[0]}, {rango[1]}]: "
+                      f"{sorted(fuera_rango.unique())[:10]}")
+
+
+validar_notas(dfs_finales, COLS_NOTAS)
 
 #%% ==============================================================================
 # 11. VALIDACIÓN: Revisar columnas en los CSV generados
