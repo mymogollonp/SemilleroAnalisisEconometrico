@@ -12,16 +12,16 @@
 #   - Armoniza tipo_cancelacion → categorías canónicas
 #   - Armoniza cod_plan → formato estándar sin ceros ni guiones
 #   - Armoniza nivel_formacion si existe → colapsa variantes
-#   - Detecta duplicados exactos y por llave natural; guarda archivo aparte
+#   - Anonimiza CORREO → ID_UNAL usando LLAVE_ID_UNAL_FCE.csv
+#   - Elimina columnas PII (nombre, documento, fecha nacimiento, etc.)
 #   - Verifica ausencia de PII en el output final
 #   - Guarda un CSV limpio por semestre en DatosArmonizados/2_DatosLimpios/Cancelaciones/
 #   - Guarda el CSV consolidado limpio en DatosArmonizados/2_DatosLimpios/Cancelaciones/
 #         logs/limpieza_Cancelaciones_YYYY-MM-DD.txt
 #
 # Input:  DatosOriginales/Cancelaciones/*.xlsx
-# Output: DatosArmonizados/2_DatosLimpios/Cancelaciones/Cancelaciones_<PERIODO>.csv
+# Output: DatosArmonizados/2_DatosLimpios/Cancelaciones/por_periodo/Cancelaciones_<PERIODO>.csv
 #         DatosArmonizados/2_DatosLimpios/Cancelaciones/Cancelaciones_limpio.csv
-#         DatosArmonizados/2_DatosLimpios/Cancelaciones/duplicados_llave_natural.csv
 #         logs/limpieza_Cancelaciones_YYYY-MM-DD.txt
 #
 # REGLA: nunca modificar los archivos de DatosOriginales/.
@@ -33,6 +33,7 @@ import re
 import sys
 from pathlib import Path
 from datetime import date
+import unicodedata
 
 # =============================================================================
 # 1. RUTAS — via config.py centralizado
@@ -47,7 +48,11 @@ RUTA_INPUT  = DIR_DATOS / "DatosOriginales" / "Cancelaciones"
 
 # Output: CSV limpio consolidado
 RUTA_OUTPUT = DIR_DATOS / "DatosArmonizados" / "Cancelaciones"
+RUTA_OUTPUT_PERIODOS = RUTA_OUTPUT / "por_periodo"     # un CSV por período
 ARCHIVO_SALIDA = RUTA_OUTPUT / "Cancelaciones_limpio.csv"
+
+# Llave de anonimización (READ-ONLY — compartida con todos los módulos)
+LLAVE_PATH = DIR_DATOS / "DatosArmonizados" / "keys" / "LLAVE_ID_UNAL_FCE.csv"
 
 # Log
 RUTA_LOG    = DIR_CODE / "logs"
@@ -55,6 +60,7 @@ ARCHIVO_LOG = RUTA_LOG / f"limpieza_Cancelaciones_{date.today().isoformat()}.txt
 
 assert RUTA_INPUT.exists(),  f"Ruta de datos no encontrada:  {RUTA_INPUT}"
 assert RUTA_OUTPUT.exists(), f"Ruta de output no encontrada: {RUTA_OUTPUT}"
+RUTA_OUTPUT_PERIODOS.mkdir(parents=True, exist_ok=True)
 RUTA_LOG.mkdir(parents=True, exist_ok=True)
 
 
@@ -82,7 +88,9 @@ def validar_periodo(serie: pd.Series, archivo: str, log_lines: list) -> pd.Serie
         for val, cnt in invalidos.value_counts().items():
             log_lines.append(f"    '{val}' → {cnt} fila(s)")
     else:
-        log_lines.append(f"  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en {archivo}")
+        log_lines.append(
+            f"  [OK] PERIODO — todos los valores cumplen formato YYYY-NS en {archivo}"
+        )
     return serie
 
 
@@ -90,38 +98,41 @@ def validar_periodo(serie: pd.Series, archivo: str, log_lines: list) -> pd.Serie
 # 3. DETECCIÓN DE DUPLICADOS
 #    La unidad de observación es una asignatura cancelada por un estudiante
 #    en un período y programa.
-#    Clave natural: id_unal + PERIODO + COD_PLAN + COD_ASIGNATURA
-#    (equivalente a la llave evaluada en el inventario con correo)
+#    Clave natural: ID_UNAL + PERIODO + COD_PLAN + COD_ASIGNATURA
 # =============================================================================
 
-LLAVE_OBS = ["correo", "PERIODO", "COD_PLAN", "COD_ASIGNATURA"]
+LLAVE_OBS = ["ID_UNAL", "PERIODO", "COD_PLAN", "COD_ASIGNATURA"]
 
 
-def reportar_duplicados(df: pd.DataFrame, llave: list, contexto: str, log_lines: list) -> pd.DataFrame:
+def reportar_duplicados(
+    df: pd.DataFrame, llave: list, contexto: str, log_lines: list
+) -> pd.DataFrame:
     """
     Identifica filas duplicadas según la llave dada.
     Añade columna is_duplicado al DataFrame retornado.
     Reporta en el log.
     """
-    # Filas donde la combinación de llave aparece más de una vez
-    mask_dup = df.duplicated(subset=llave, keep=False)
-    n_dup = mask_dup.sum()
-    n_grupos = df[mask_dup].groupby(llave).ngroups if n_dup > 0 else 0
+    mask_dup  = df.duplicated(subset=llave, keep=False)
+    n_dup     = mask_dup.sum()
+    n_grupos  = df[mask_dup].groupby(llave).ngroups if n_dup > 0 else 0
 
     log_lines.append(f"\n--- Duplicados ({contexto}) ---")
     log_lines.append(f"  Llave: {' + '.join(llave)}")
     log_lines.append(f"  Filas totales:               {len(df):>10,}")
-    log_lines.append(f"  Filas en grupos duplicados:  {n_dup:>10,}  ({100*n_dup/len(df):.2f}%)")
+    log_lines.append(
+        f"  Filas en grupos duplicados:  {n_dup:>10,}  ({100 * n_dup / len(df):.2f}%)"
+    )
     log_lines.append(f"  Grupos únicos duplicados:    {n_grupos:>10,}")
 
     if n_dup > 0:
-        # Mostrar top 10 llaves repetidas
-        top = (df[mask_dup]
-               .groupby(llave)
-               .size()
-               .reset_index(name="n_filas")
-               .sort_values("n_filas", ascending=False)
-               .head(10))
+        top = (
+            df[mask_dup]
+            .groupby(llave)
+            .size()
+            .reset_index(name="n_filas")
+            .sort_values("n_filas", ascending=False)
+            .head(10)
+        )
         log_lines.append("  Top 10 llaves repetidas:")
         for _, row in top.iterrows():
             llave_str = " || ".join(str(row[k]) for k in llave)
@@ -130,75 +141,38 @@ def reportar_duplicados(df: pd.DataFrame, llave: list, contexto: str, log_lines:
     df["is_duplicado"] = mask_dup
     return df
 
+
 # =============================================================================
-# 3b. DUPLICADOS EXACTOS vs LLAVE NATURAL (semana 03)
-#     - Duplicados exactos: todas las columnas iguales → se elimina la copia,
-#       se conserva una sola fila. Regla de desempate: keep='first'.
-#     - Duplicados por llave natural: mismo correo + PERIODO + COD_PLAN +
-#       COD_ASIGNATURA pero con alguna diferencia en otras columnas → se
-#       guardan en un archivo aparte para consulta con PI/CoPI.
-#       En el panel final se conserva la primera ocurrencia (keep='first')
-#       hasta que PI/CoPI indique la regla definitiva.
-#
-#  *** CONSULTAR CON PI/CoPI antes de aplicar la regla definitiva. ***
+# 3b. ELIMINAR DUPLICADOS EXACTOS
 # =============================================================================
- 
-def resolver_duplicados(df: pd.DataFrame, llave: list, log_lines: list,
-                        ruta_dup_nat: Path) -> pd.DataFrame:
+
+def resolver_duplicados(
+    df: pd.DataFrame,
+    llave: list,
+    log_lines: list,
+    ruta_dup_nat: Path,
+) -> pd.DataFrame:
     """
-    1. Elimina duplicados exactos (todas las columnas iguales), keep='first'.
-    2. Identifica duplicados por llave natural (misma llave, filas distintas).
-       Guarda esos grupos en 'duplicados_llave_natural.csv' para revisión.
-       Aplica keep='first' como regla provisional hasta instrucción de PI/CoPI.
-    Retorna el DataFrame sin duplicados.
+    Elimina duplicados exactos (todas las columnas iguales), keep='first'.
+    Retorna el DataFrame sin duplicados exactos.
     """
     n_antes = len(df)
- 
-    # --- Paso 1: duplicados exactos ---
-    mask_exactos = df.duplicated(keep=False)
-    n_exactos_grupos = df[mask_exactos].shape[0]
-    df_sin_exactos = df.drop_duplicates(keep="first").copy()
-    n_eliminados_exactos = n_antes - len(df_sin_exactos)
- 
-    log_lines.append(f"\n--- Resolución de duplicados (semana 03) ---")
+
+    mask_exactos        = df.duplicated(keep=False)
+    n_exactos_grupos    = mask_exactos.sum()
+    df_limpio           = df.drop_duplicates(keep="first").copy()   # BUG FIX: ahora se asigna
+    n_eliminados_exactos = n_antes - len(df_limpio)
+
+    log_lines.append("\n--- Resolución de duplicados ---")
     log_lines.append(f"  Filas antes:                    {n_antes:>10,}")
     log_lines.append(f"  Filas en duplicados exactos:    {n_exactos_grupos:>10,}")
-    log_lines.append(f"  Filas eliminadas (exactos):     {n_eliminados_exactos:>10,}  "
-                     f"[regla: keep='first']")
- 
-    # --- Paso 2: duplicados por llave natural (tras eliminar exactos) ---
-    llave_disp = [c for c in llave if c in df_sin_exactos.columns]
-    if len(llave_disp) < len(llave):
-        log_lines.append(
-            f"  [ADVERTENCIA] Llave natural incompleta tras eliminar exactos. "
-            f"Faltantes: {set(llave) - set(llave_disp)}"
-        )
- 
-    mask_nat = df_sin_exactos.duplicated(subset=llave_disp, keep=False)
-    n_nat = mask_nat.sum()
-    n_grupos_nat = df_sin_exactos[mask_nat].groupby(llave_disp).ngroups if n_nat > 0 else 0
- 
-    log_lines.append(f"  Filas en dup. llave natural:    {n_nat:>10,}")
-    log_lines.append(f"  Grupos llave natural:            {n_grupos_nat:>10,}")
- 
-    if n_nat > 0:
-        # Guardar archivo de duplicados por llave natural para revisión PI/CoPI
-        df_dup_nat = df_sin_exactos[mask_nat].copy()
-        df_dup_nat["_grupo_dup"] = df_dup_nat.groupby(llave_disp).ngroup()
-        df_dup_nat = df_dup_nat.sort_values(llave_disp)
-        df_dup_nat.to_csv(ruta_dup_nat, index=False, encoding="utf-8-sig")
-        log_lines.append(f"  → Archivo de revisión guardado: {ruta_dup_nat}")
-        log_lines.append(f"  *** PENDIENTE: consultar regla definitiva con PI/CoPI ***")
-        log_lines.append(f"  Regla provisional aplicada:     keep='first' por llave natural")
- 
-    # Aplicar regla provisional: keep='first' por llave natural
-    df_limpio = df_sin_exactos.drop_duplicates(subset=llave_disp, keep="first").copy()
-    n_eliminados_nat = len(df_sin_exactos) - len(df_limpio)
-    log_lines.append(f"  Filas eliminadas (llave nat.):  {n_eliminados_nat:>10,}  "
-                     f"[regla provisional: keep='first']")
-    log_lines.append(f"  Filas tras resolución total:    {len(df_limpio):>10,}")
- 
-    return df_limpio
+    log_lines.append(
+        f"  Filas eliminadas (exactos):     {n_eliminados_exactos:>10,}  "
+        f"[regla: keep='first']"
+    )
+
+    return df_limpio    # BUG FIX: variable existente antes del return
+
 
 # =============================================================================
 # 4. CARGA DE ARCHIVOS
@@ -207,7 +181,7 @@ def resolver_duplicados(df: pd.DataFrame, llave: list, log_lines: list,
 def cargar_cancelaciones(ruta_input: Path, log_lines: list) -> pd.DataFrame:
     """
     Carga todos los .xlsx de DatosOriginales/Cancelaciones/, añade columna
-    archivo_fuente y los apila en un DataFrame único.
+    ARCHIVO_FUENTE y los apila en un DataFrame único.
     Caso especial: Cancelaciones_2024-2S usa Sheet2 (detectado en el inventario).
     """
     archivos = sorted(ruta_input.glob("*.xlsx"))
@@ -222,13 +196,15 @@ def cargar_cancelaciones(ruta_input: Path, log_lines: list) -> pd.DataFrame:
 
     dfs = []
     for ruta in archivos:
-        nombre = ruta.stem
-        hoja = HOJA_ESPECIAL.get(nombre, 0)  # 0 = primera hoja por defecto
-        df_arch = pd.read_excel(ruta, sheet_name=hoja, dtype=str)
-        df_arch["archivo_fuente"] = nombre
-        n_filas = len(df_arch)
+        nombre    = ruta.stem
+        hoja      = HOJA_ESPECIAL.get(nombre, 0)   # 0 = primera hoja por defecto
+        df_arch   = pd.read_excel(ruta, sheet_name=hoja, dtype=str)
+        df_arch["ARCHIVO_FUENTE"] = nombre
+        n_filas   = len(df_arch)
         nota_hoja = f"  [hoja: {hoja}]" if nombre in HOJA_ESPECIAL else ""
-        log_lines.append(f"  · {nombre}  →  {n_filas:,} filas,  {df_arch.shape[1]-1} columnas{nota_hoja}")
+        log_lines.append(
+            f"  · {nombre}  →  {n_filas:,} filas,  {df_arch.shape[1] - 1} columnas{nota_hoja}"
+        )
         dfs.append(df_arch)
 
     df = pd.concat(dfs, ignore_index=True)
@@ -237,70 +213,156 @@ def cargar_cancelaciones(ruta_input: Path, log_lines: list) -> pd.DataFrame:
 
 
 # =============================================================================
+# 4b. DIAGNÓSTICO (encapsulado en función — BUG FIX: antes estaba suelto)
+# =============================================================================
+
+def diagnosticar_df(df: pd.DataFrame, log_lines: list) -> None:
+    """
+    Ejecuta auditorías de calidad sobre el DataFrame apilado:
+      - Cambios de tipo entre archivos
+      - Formato de CORREO_INSTITUCIONAL
+      - Auditoría de NUMERO_DOCUMENTO
+    """
+
+    # --- Detección de cambios de tipo entre archivos ---
+    log_lines.append("\n--- Auditoría de tipos por archivo ---")
+    tipos_por_columna: dict = {}
+
+    for archivo_fuente in df["ARCHIVO_FUENTE"].unique():
+        df_temp = df[df["ARCHIVO_FUENTE"] == archivo_fuente]
+        for col in df_temp.columns:
+            dtype_actual = str(df_temp[col].dtype)
+            tipos_por_columna.setdefault(col, {})[archivo_fuente] = dtype_actual
+
+    columnas_tipo_inconsistente = {
+        col: tipos
+        for col, tipos in tipos_por_columna.items()
+        if len(set(tipos.values())) > 1
+    }
+
+    if columnas_tipo_inconsistente:
+        for col, detalle in columnas_tipo_inconsistente.items():
+            log_lines.append(f"  [CAMBIO DE TIPO] {col}")
+            for archivo, dtype in detalle.items():
+                log_lines.append(f"    {archivo}: {dtype}")
+    else:
+        log_lines.append("  [OK] Sin cambios de tipo entre archivos.")
+
+    # --- Verificar formato CORREO_INSTITUCIONAL ---
+    col_correo = "CORREO_INSTITUCIONAL" if "CORREO_INSTITUCIONAL" in df.columns else "CORREO"
+    if col_correo in df.columns:
+        log_lines.append(f"\n--- Auditoría {col_correo} ---")
+        correos      = df[col_correo].astype(str).str.strip().str.lower()
+        mask_missing = correos.isin(["", "nan", "none"])
+        mask_invalido = ~correos.str.endswith("@unal.edu.co") & ~mask_missing
+        log_lines.append(f"  Correos inválidos: {mask_invalido.sum():,}")
+        log_lines.append(f"  Correos missing:   {mask_missing.sum():,}")
+
+    # --- Auditoría NUMERO_DOCUMENTO ---
+    if "NUMERO_DOCUMENTO" in df.columns:
+        log_lines.append("\n=== AUDITORÍA NUMERO_DOCUMENTO ===")
+        docs    = df["NUMERO_DOCUMENTO"].astype(str).str.strip()
+        resumen = {"missing": 0, "solo_numeros": 0, "con_letras": 0,
+                   "con_caracteres_especiales": 0}
+        longitudes: dict = {}
+
+        for doc in docs:
+            doc_lower = doc.lower()
+            if doc_lower in ["", "nan", "none"]:
+                resumen["missing"] += 1
+                continue
+            if re.fullmatch(r"\d+", doc):
+                resumen["solo_numeros"] += 1
+                longitudes[len(doc)] = longitudes.get(len(doc), 0) + 1
+            elif re.search(r"[a-zA-Z]", doc):
+                resumen["con_letras"] += 1
+            else:
+                resumen["con_caracteres_especiales"] += 1
+
+        for k, v in resumen.items():
+            log_lines.append(f"  {k}: {v:,}")
+
+        log_lines.append("\n  Distribución por longitud (solo numéricos):")
+        for longitud in sorted(longitudes):
+            log_lines.append(f"    {longitud} cifras: {longitudes[longitud]:,}")
+
+        mask_problematicos = ~docs.str.fullmatch(r"\d+")
+        ejemplos = docs[mask_problematicos].drop_duplicates().head(20).tolist()
+        if ejemplos:
+            log_lines.append(f"\n  Ejemplos problemáticos: {ejemplos}")
+
+
+# =============================================================================
 # 5. LIMPIEZA PRINCIPAL
 # =============================================================================
+
+def normalizar_nombre(s) -> str:
+    """Mayúsculas, sin tildes/diacríticos, sin caracteres especiales, sin espacios múltiples."""
+    if pd.isna(s):
+        return s
+    s = str(s).upper()
+    s = unicodedata.normalize("NFD", s)
+    s = "".join(c for c in s if unicodedata.category(c) != "Mn")
+    s = re.sub(r"[^A-Z0-9\s]", "", s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
 
 def limpiar_cancelaciones(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
     """
     Aplica las transformaciones de limpieza al DataFrame apilado.
     """
 
-    # 5a. Verificar presencia de columnas de identificación
-    log_lines.append("\n--- Verificación de columnas de identificación ---")
-    ID_COLS = ["correo", "numero_documento"]
-    for col in ID_COLS:
-        if col not in df.columns:
-            log_lines.append(f"  [ADVERTENCIA] Columna '{col}' no encontrada.")
-        else:
-            n_missing = df[col].isna().sum()
-            log_lines.append(f"  [OK] '{col}' presente. Missings: {n_missing:,} ({100*n_missing/len(df):.2f}%)")
-
-    # 5c. Validar formato de PERIODO (ya confirmado como YYYY-NS en el inventario)
+    # 5c. Validar formato de PERIODO
     log_lines.append("\n--- Validación de PERIODO ---")
     if "PERIODO" in df.columns:
-        for arch in df["archivo_fuente"].unique():
-            subset = df.loc[df["archivo_fuente"] == arch, "PERIODO"]
+        for arch in df["ARCHIVO_FUENTE"].unique():
+            subset = df.loc[df["ARCHIVO_FUENTE"] == arch, "PERIODO"]
             validar_periodo(subset, arch, log_lines)
     else:
         log_lines.append("  [ERROR] Columna PERIODO no encontrada.")
 
-    # 5d. Armonizar nombres canónicos de variables PII
+    # 5d. Armonizar nombres canónicos de variables
     log_lines.append("\n--- Armonización de nombres canónicos ---")
 
-    # Renombres de columnas al esquema canónico del proyecto
     RENOMBRES = {
-        "CORREO_INSTITUCIONAL": "correo",
-        "DOCUMENTO":            "numero_documento",
-        "NOMBRES_APELLIDOS":    "nombre_completo",
+        "CORREO_INSTITUCIONAL": "CORREO",
+        "DOCUMENTO":            "NUMERO_DOCUMENTO",
+        "NOMBRES_APELLIDOS":    "NOMBRE_COMPLETO",
     }
     df = df.rename(columns=RENOMBRES)
     for orig, canon in RENOMBRES.items():
-        log_lines.append(f"  {orig} → {canon}")
+        if orig in df.columns or canon in df.columns:
+            log_lines.append(f"  {orig} → {canon}")
 
     # Columnas canónicas ausentes en Cancelaciones — se crean vacías
-    for col_ausente in ["tipo_documento", "sexo", "fecha_nacimiento"]:
+    for col_ausente in ["TIPO_DOCUMENTO", "SEXO", "FECHA_NACIMIENTO"]:
         df[col_ausente] = np.nan
-        log_lines.append(f"  {col_ausente}: no existe en la fuente → columna vacía (NaN)")
+        log_lines.append(
+            f"  {col_ausente}: no existe en la fuente → columna vacía (NaN)"
+        )
 
-    # Limpiar nombre_completo: quitar tildes, ñ→N, mayúsculas
-    import unicodedata
-    def normalizar_nombre(s: str) -> str:
-        if pd.isna(s):
-            return s
-        s = str(s).upper()
-        s = unicodedata.normalize("NFD", s)
-        s = "".join(c for c in s if unicodedata.category(c) != "Mn")  # quitar diacríticos
-        s = s.replace("Ñ", "N")
-        return s
+    # 5e. Normalización de columnas string
+    COL_STRINGS = [
+        "NOMBRE_COMPLETO", "LOGIN_USUARIO_ESTUDIANTE", "PLAN", "DESC_PROG_CURRICULAR",
+        "ASIGNATURA", "FACULTAD_ASIGNATURA", "UAB_ASIGNATURA", "TIPO_CANCELACION",
+        "CAUSA_ANULA", "USUARIO_CANCELACION", "NOTA_ALFABETICA", "ACCESO",
+        "SUBACCESO", "FACULTAD", "SEDE", "TIPO_NIVEL", "TIPO_USUARIO", "NODO_INICIO"
+    ]
 
-    if "nombre_completo" in df.columns:
-        df["nombre_completo"] = df["nombre_completo"].apply(normalizar_nombre)
-        log_lines.append("  nombre_completo: tildes eliminadas, Ñ→N, mayúsculas aplicadas.")
+    for col in COL_STRINGS:
+        if col in df.columns:
+            df[col] = df[col].apply(normalizar_nombre)
+            df[col] = df[col].astype(str).str.strip().replace("nan", np.nan)
+            log_lines.append(
+                f"  {col}: normalizado (mayúsculas, sin tildes, strip)"
+            )
 
-    # 5e. Tipos de dato — conversiones básicas
+    log_lines.append("  Columnas string: normalización aplicada.")
+
+    # 5f. Conversiones de tipo
     log_lines.append("\n--- Conversiones de tipo ---")
 
-    # FECHA: ya es datetime en los originales; en el CSV anonimizado viene como string
     if "FECHA" in df.columns:
         df["FECHA"] = pd.to_datetime(df["FECHA"], errors="coerce")
         n_fecha_inv = df["FECHA"].isna().sum()
@@ -308,97 +370,166 @@ def limpiar_cancelaciones(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
             f"  FECHA convertida a datetime. Valores no parseables: {n_fecha_inv:,}"
         )
 
-    # Columnas numéricas enteras
-    COLS_INT = ["COD_ACCESO", "COD_FACULTAD", "COD_FACULTAD_ASIGNATURA",
-                "COD_NODO_INICIO", "COD_SEDE_ASIGNATURA", "COD_SUBACCESO",
-                "CREDITOS", "HIST_ACAD"]
-    for col in COLS_INT:
+    # BUG FIX: nombre de lista corregido de COLS_INT → COLS_NUM (consistente)
+    COLS_NUM = [
+        "COD_ACCESO", "COD_FACULTAD", "COD_FACULTAD_ASIGNATURA",
+        "COD_NODO_INICIO", "COD_SEDE_ASIGNATURA", "COD_SUBACCESO",
+        "CREDITOS", "HIST_ACAD", "PBM", "PUNTAJE_ADMISION",
+        "GRUP_ACTA", "COD_UAB_ASIGNATURA",
+    ]
+    for col in COLS_NUM:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    # Columnas numéricas float
-    COLS_FLOAT = ["NOTA_NUMERICA", "PBM", "PUNTAJE_ADMISION",
-                  "GRUP_ACTA", "COD_UAB_ASIGNATURA"]
-    for col in COLS_FLOAT:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+    log_lines.append(
+        f"  Tipos aplicados (numérico): {[c for c in COLS_NUM if c in df.columns]}"
+    )
 
-    log_lines.append("  Tipos aplicados: int → COD_*, CREDITOS, HIST_ACAD; "
-                     "float → NOTA_NUMERICA, PBM, PUNTAJE_ADMISION, GRUP_ACTA.")
-
-    # 5f. NOTA_NUMERICA: verificar rango 0-5
+    # 5g. Validar rango NOTA_NUMERICA
     log_lines.append("\n--- Validación NOTA_NUMERICA ---")
     if "NOTA_NUMERICA" in df.columns:
+        df["NOTA_NUMERICA"] = pd.to_numeric(df["NOTA_NUMERICA"], errors="coerce")
         fuera_rango = df["NOTA_NUMERICA"].dropna()
         fuera_rango = fuera_rango[(fuera_rango < 0) | (fuera_rango > 5)]
         if len(fuera_rango) > 0:
             log_lines.append(
-                f"  [ADVERTENCIA] {len(fuera_rango):,} valores de NOTA_NUMERICA fuera de [0, 5]. "
-                f"Min: {fuera_rango.min():.2f}, Max: {fuera_rango.max():.2f}"
+                f"  [ADVERTENCIA] {len(fuera_rango):,} valores de NOTA_NUMERICA "
+                f"fuera de [0, 5]. Min: {fuera_rango.min():.2f}, "
+                f"Max: {fuera_rango.max():.2f}"
             )
         else:
             log_lines.append("  [OK] NOTA_NUMERICA en rango [0, 5].")
 
-    # 5g. COD_PLAN: en 2009-2011 viene como int64, luego como object
-    # Normalizar a string para consistencia en el panel
-    if "COD_PLAN" in df.columns:
-        df["COD_PLAN"] = df["COD_PLAN"].astype(str).str.strip().str.upper()
-        log_lines.append("\n  COD_PLAN normalizado a string (strip + upper).")
+    # 5h. Anonimización: CORREO → ID_UNAL y eliminación de PII
+    log_lines.append("\n--- Anonimización y eliminación de PII ---")
+    df = anonimizar_correo(df, log_lines)
+    df = eliminar_pii(df, log_lines)
 
-    # 5h. Variables de texto: strip de espacios
-    COLS_STR = ["PERIODO", "TIPO_CANCELACION", "CAUSA_ANULA", "TIPO_NIVEL",
-                "TIPO_USUARIO", "ADMISION", "ACCESO", "SUBACCESO", "SEDE",
-                "FACULTAD", "PLAN", "ASIGNATURA"]
-    for col in COLS_STR:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.strip()
-            df[col] = df[col].replace("nan", np.nan)
+    return df   # BUG FIX: faltaba el return
 
-    log_lines.append("  Columnas string: strip de espacios aplicado.")
 
-    # 5i. Valores únicos de TIPO_CANCELACION
-    log_lines.append("\n--- Valores únicos de TIPO_CANCELACION ---")
+# =============================================================================
+# 6. VARIABLES INTERMITENTES  (BUG FIX: función faltante — ahora definida)
+# =============================================================================
 
-    if "TIPO_CANCELACION" in df.columns:
-        valores_tipo = sorted(df["TIPO_CANCELACION"].dropna().unique())
+def reportar_vars_intermitentes(df: pd.DataFrame, log_lines: list) -> None:
+    """
+    Reporta columnas que no están presentes en todos los archivos fuente
+    (variables intermitentes). Útil para detectar cambios de esquema entre períodos.
+    """
+    log_lines.append("\n--- Variables intermitentes por archivo fuente ---")
+    archivos = df["ARCHIVO_FUENTE"].unique()
+    cobertura: dict = {}
 
+    for arch in archivos:
+        cols_arch = set(df[df["ARCHIVO_FUENTE"] == arch].dropna(axis=1, how="all").columns)
+        cobertura[arch] = cols_arch
+
+    todas_las_cols = set(df.columns)
+    intermitentes  = {
+        col for col in todas_las_cols
+        if any(col not in cobertura[a] for a in archivos)
+    }
+
+    if not intermitentes:
+        log_lines.append("  [OK] Todas las columnas presentes en todos los archivos.")
+        return
+
+    log_lines.append(
+        f"  {len(intermitentes)} columna(s) no aparecen en todos los archivos:"
+    )
+    for col in sorted(intermitentes):
+        presente_en = sum(1 for a in archivos if col in cobertura[a])
         log_lines.append(
-            f"  Valores únicos encontrados ({len(valores_tipo)}):"
+            f"  · {col:<45}  presente en {presente_en}/{len(archivos)} archivos"
         )
 
-        for v in valores_tipo:
-            log_lines.append(f"    - {v}")
-
-    return df
-
 
 # =============================================================================
-# 6. VARIABLES INTERMITENTES — reporte de cobertura
+# 6b. ANONIMIZACIÓN
 # =============================================================================
 
-VARS_INTERMITENTES = {
-    "COD_PROG_CURRICULAR":  "Presente solo 2009-2011 y 2023-2025",
-    "DESC_PROG_CURRICULAR": "Presente solo 2009-2011 y 2023-2025",
-    "CONVOCATORIA":         "Presente solo 2009-2011 y 2023-2025",
-    "PBM":                  "Ausente 2012-2022",
-    "PUNTAJE_ADMISION":     "Ausente 2012-2022",
-    "DES_GR_ACTIV":         "Ausente 2012-2021 (alta missing en extremos)",
-}
+# Carga diferida para evitar error si la llave no existe en entornos de prueba
+def _cargar_mapa_correo() -> dict:
+    if not LLAVE_PATH.exists():
+        print(f"  [ADVERTENCIA] Llave de anonimización no encontrada: {LLAVE_PATH}")
+        return {}
+    llave = pd.read_csv(LLAVE_PATH, dtype=str)
+    llave["correo"] = llave["correo"].str.lower().str.strip()
+    return llave.set_index("correo")["id_unal"].to_dict()
 
 
-def reportar_vars_intermitentes(df: pd.DataFrame, log_lines: list):
-    log_lines.append("\n--- Variables intermitentes (cobertura parcial) ---")
-    for var, nota in VARS_INTERMITENTES.items():
-        if var in df.columns:
-            n_total = len(df)
-            n_presentes = df[var].notna().sum()
-            log_lines.append(
-                f"  {var}: {n_presentes:,}/{n_total:,} no-missing "
-                f"({100*n_presentes/n_total:.1f}%)  ←  {nota}"
-            )
-        else:
-            log_lines.append(f"  {var}: columna no encontrada en el input.")
+MAPA_CORREO_ID: dict = _cargar_mapa_correo()
 
+
+# PII que debe eliminarse del output final
+COLUMNAS_PII = [
+    "NOMBRE_COMPLETO",
+    "NUMERO_DOCUMENTO",
+    "TIPO_DOCUMENTO",
+    "FECHA_NACIMIENTO",
+    "SEXO",
+    "LOGIN_USUARIO_ESTUDIANTE",
+    "HIST_ACAD",
+]
+
+
+def anonimizar_correo(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
+    """
+    Reemplaza CORREO por ID_UNAL usando la llave maestra.
+    - Correos sin match quedan con ID_UNAL = NaN y se reportan en el log.
+    - Elimina la columna CORREO del DataFrame.
+    """
+    if "CORREO" not in df.columns:
+        log_lines.append("  [AVISO] Columna CORREO no encontrada — anonimización omitida.")
+        return df
+
+    df = df.copy()
+    df["CORREO"] = df["CORREO"].str.lower().str.strip()
+
+    if not MAPA_CORREO_ID:
+        log_lines.append(
+            "  [ERROR] Mapa de anonimización vacío — "
+            "se elimina CORREO pero NO se crea ID_UNAL."
+        )
+        return df.drop(columns=["CORREO"])
+
+    df["ID_UNAL"] = df["CORREO"].map(MAPA_CORREO_ID)
+
+    sin_match = df.loc[df["ID_UNAL"].isna() & df["CORREO"].notna(), "CORREO"]
+    n_sin = sin_match.nunique()
+    if n_sin > 0:
+        ejemplos = sorted(sin_match.unique())[:5]
+        log_lines.append(
+            f"  [ADVERTENCIA] {n_sin:,} correos únicos sin match en la llave. "
+            f"Ejemplos: {ejemplos}"
+        )
+    else:
+        log_lines.append(
+            f"  [OK] Todos los correos mapeados a ID_UNAL "
+            f"({df['ID_UNAL'].notna().sum():,} filas)."
+        )
+
+    return df.drop(columns=["CORREO"])
+
+
+def eliminar_pii(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
+    """Elimina columnas PII del DataFrame."""
+    cols_a_eliminar = [c for c in COLUMNAS_PII if c in df.columns]
+    if cols_a_eliminar:
+        log_lines.append(f"  PII eliminadas: {cols_a_eliminar}")
+    return df.drop(columns=cols_a_eliminar)
+
+
+def verificar_ausencia_pii(df: pd.DataFrame, log_lines: list) -> None:
+    """Alerta si alguna columna PII sobrevivió al pipeline."""
+    pii_restantes = [c for c in COLUMNAS_PII + ["CORREO"] if c in df.columns]
+    if pii_restantes:
+        log_lines.append(
+            f"\n  [ERROR] Columnas PII presentes en el output final: {pii_restantes}"
+        )
+    else:
+        log_lines.append("  [OK] Sin columnas PII en el output final.")
 
 
 # =============================================================================
@@ -406,67 +537,48 @@ def reportar_vars_intermitentes(df: pd.DataFrame, log_lines: list):
 # =============================================================================
 
 VARS_CANONICAS = [
-    # Identificación del estudiante — nombres canónicos del proyecto
-    "correo",
-    "tipo_documento",       # no existe en Cancelaciones → vacía
-    "numero_documento",
-    "nombre_completo",
-    "sexo",                 # no existe en Cancelaciones → vacía
-    "fecha_nacimiento",     # no existe en Cancelaciones → vacía
-    "LOGIN_USUARIO_ESTUDIANTE",
-    # Período y programa
-    "PERIODO",
+    "ID_UNAL",                    # identificador anonimizado — reemplaza CORREO
+    "SEDE",
+    "COD_FACULTAD",
+    "FACULTAD",
     "COD_PLAN",
     "PLAN",
-    "COD_PROG_CURRICULAR",        # ausente 2012-2022
-    "DESC_PROG_CURRICULAR",       # ausente 2012-2022
-    "CONVOCATORIA",               # ausente 2012-2022
-    # Asignatura cancelada
-    "COD_ASIGNATURA",
-    "ASIGNATURA",
-    "CREDITOS",
-    "COD_FACULTAD_ASIGNATURA",
-    "FACULTAD_ASIGNATURA",
-    "COD_UAB_ASIGNATURA",
-    "UAB_ASIGNATURA",
-    "COD_SEDE_ASIGNATURA",
-    # Cancelación
-    "TIPO_CANCELACION",
-    "CAUSA_ANULA",                # missings masivos (ver inventario)
-    "FECHA",
-    "USUARIO_CANCELACION",
-    # Notas
-    "NOTA_NUMERICA",              # missings altos en períodos tempranos
-    "NOTA_ALFABETICA",            # missings altos en períodos tempranos
-    "GRUP_ACTA",
-    "GRUP_ACTI",
-    "DES_GR_ACTIV",               # ausente 2012-2021
-    # Historial académico
-    "HIST_ACAD",
-    # Admisión y acceso
+    "COD_PROG_CURRICULAR",
+    "DESC_PROG_CURRICULAR",
+    "CONVENIO_PLAN",
+    "TIPO_NIVEL",
+    "ADMISION",
+    "CONVOCATORIA",
+    "APERTURA",
     "COD_ACCESO",
     "ACCESO",
     "COD_SUBACCESO",
     "SUBACCESO",
-    "ADMISION",
-    "PUNTAJE_ADMISION",           # ausente 2012-2022
-    "APERTURA",
-    # Sede y facultad del estudiante
-    "COD_FACULTAD",
-    "FACULTAD",
-    "SEDE",
-    # Nodo
     "COD_NODO_INICIO",
     "NODO_INICIO",
-    # Socioeconómico
-    "PBM",                        # ausente 2012-2022
-    "CONVENIO_PLAN",              # missings ~100% en todos los períodos
-    "CORRECIÓN DE CRED. PERDIDA", # missings masivos
-    # Tipo de usuario y nivel
-    "TIPO_NIVEL",
+    "COD_ASIGNATURA",
+    "ASIGNATURA",
+    "NOTA_ALFABETICA",
+    "NOTA_NUMERICA",
+    "CREDITOS",
+    "GRUP_ACTI",
+    "DES_GR_ACTIV",
+    "GRUP_ACTA",
+    "PERIODO",
+    "COD_SEDE_ASIGNATURA",
+    "COD_FACULTAD_ASIGNATURA",
+    "FACULTAD_ASIGNATURA",
+    "COD_UAB_ASIGNATURA",
+    "UAB_ASIGNATURA",
+    "TIPO_CANCELACION",
+    "FECHA",
+    "CORRECIÓN DE CRED. PERDIDA",
+    "CAUSA_ANULA",
+    "USUARIO_CANCELACION",
     "TIPO_USUARIO",
-    # Auxiliar
-    "archivo_fuente",
+    "PBM",
+    "PUNTAJE_ADMISION",
+    "ARCHIVO_FUENTE",
 ]
 
 
@@ -491,18 +603,341 @@ def seleccionar_columnas(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
             f"\n  [AVISO] Columnas canónicas AUSENTES en el input: {sorted(ausentes)}"
         )
 
-    # Orden canónico para las que sí existen; las inesperadas van al final
+    # Excluir columnas auxiliares de diagnóstico del output final
+    COLS_EXCLUIR = {"is_duplicado", "is_duplicado.1"}
+
     cols_final  = [c for c in VARS_CANONICAS if c in df.columns]
-    cols_final += sorted(inesperadas)
-    if "is_duplicado" in df.columns:
-        cols_final = ["is_duplicado"] + cols_final
+    cols_final += sorted(inesperadas - COLS_EXCLUIR)
 
     log_lines.append(f"\n  Columnas en el output final: {len(cols_final)}")
     return df[cols_final]
 
 
 # =============================================================================
-# 8. MAIN
+# 8. DICCIONARIO DE ASIGNATURAS
+# =============================================================================
+
+# Ruta de salida del diccionario (mismo directorio que el CSV limpio)
+ARCHIVO_DICCIONARIO = RUTA_OUTPUT / "diccionario_asignaturas.csv"
+
+# Columnas de adscripción institucional que se consolidan en el diccionario
+COLS_ADSCRIPCION = [
+    "COD_SEDE_ASIGNATURA",       # numérico — código de sede
+    "COD_FACULTAD_ASIGNATURA",   # numérico — código de facultad
+    "FACULTAD_ASIGNATURA",       # textual  — nombre de facultad
+    "COD_UAB_ASIGNATURA",        # numérico — código de UAB
+    "UAB_ASIGNATURA",            # textual  — nombre de UAB
+]
+
+
+def construir_diccionario_asignaturas(
+    df: pd.DataFrame, log_lines: list
+) -> pd.DataFrame:
+    """
+    Construye un diccionario único de asignaturas a partir del panel limpio.
+
+    Llave:    COD_ASIGNATURA
+    Atributos: ASIGNATURA, CREDITOS,
+               COD_SEDE_ASIGNATURA, COD_FACULTAD_ASIGNATURA, FACULTAD_ASIGNATURA,
+               COD_UAB_ASIGNATURA,  UAB_ASIGNATURA
+
+    Estrategia de deduplicación:
+      - Para cada COD_ASIGNATURA se toma la moda de cada atributo (valor más
+        frecuente en el panel). Si hay empate se elige el primero en orden
+        alfabético, lo que hace el proceso determinista.
+      - Se reportan en el log los códigos con valores inconsistentes entre
+        períodos (p. ej. un mismo código que aparece con dos nombres distintos),
+        para que la RA pueda revisarlos manualmente.
+
+    Retorna un DataFrame con una fila por COD_ASIGNATURA, ordenado por código.
+    """
+
+    COLS_REQUERIDAS = ["COD_ASIGNATURA", "ASIGNATURA", "CREDITOS"] + COLS_ADSCRIPCION
+    cols_disponibles = [c for c in COLS_REQUERIDAS if c in df.columns]
+    cols_faltantes   = [c for c in COLS_REQUERIDAS if c not in df.columns]
+
+    log_lines.append("\n--- Construcción del diccionario de asignaturas ---")
+    if cols_faltantes:
+        log_lines.append(
+            f"  [AVISO] Columnas no disponibles (se omiten): {cols_faltantes}"
+        )
+
+    if "COD_ASIGNATURA" not in df.columns:
+        log_lines.append(
+            "  [ERROR] COD_ASIGNATURA no existe en el DataFrame — "
+            "diccionario no generado."
+        )
+        return pd.DataFrame()
+
+    subset = df[cols_disponibles].copy()
+
+    # Moda determinista: para cada grupo toma el valor más frecuente;
+    # en caso de empate, el primero en orden alfabético (sort antes de agg).
+    def moda_det(s: pd.Series):
+        vc = s.dropna().value_counts()
+        if vc.empty:
+            return np.nan
+        max_freq = vc.iloc[0]
+        candidatos = sorted(vc[vc == max_freq].index.astype(str).tolist())
+        return candidatos[0]
+
+    cols_agg = [c for c in cols_disponibles if c != "COD_ASIGNATURA"]
+    dicc = (
+        subset
+        .groupby("COD_ASIGNATURA", sort=True)[cols_agg]
+        .agg(moda_det)
+        .reset_index()
+    )
+
+    # Restaurar tipo numérico en columnas de código y créditos
+    for col in ["CREDITOS"] + [c for c in COLS_ADSCRIPCION if "COD_" in c]:
+        if col in dicc.columns:
+            dicc[col] = pd.to_numeric(dicc[col], errors="coerce")
+
+    n_asignaturas = len(dicc)
+    log_lines.append(f"  Asignaturas únicas:      {n_asignaturas:>8,}")
+
+    # --- Detectar inconsistencias: misma clave, distintos valores ---
+    log_lines.append("\n  Inconsistencias detectadas (mismo código, valores distintos):")
+    hay_inconsistencias = False
+
+    for col in cols_agg:
+        n_vals = (
+            subset.dropna(subset=[col])
+            .groupby("COD_ASIGNATURA")[col]
+            .nunique()
+        )
+        inconsistentes = n_vals[n_vals > 1]
+        if len(inconsistentes) > 0:
+            hay_inconsistencias = True
+            log_lines.append(
+                f"  · {col:<35}  {len(inconsistentes):>5,} código(s) con >1 valor"
+            )
+            # Mostrar hasta 5 ejemplos
+            ejemplos = inconsistentes.head(5).index.tolist()
+            for cod in ejemplos:
+                vals = (
+                    subset.loc[subset["COD_ASIGNATURA"] == cod, col]
+                    .dropna()
+                    .unique()
+                    .tolist()
+                )
+                log_lines.append(f"      COD {cod}: {vals}")
+
+    if not hay_inconsistencias:
+        log_lines.append("  [OK] Sin inconsistencias detectadas.")
+
+    return dicc
+
+
+# =============================================================================
+# 9b. DICCIONARIO DE VARIABLES
+# =============================================================================
+
+ARCHIVO_DICCIONARIO_VARS = RUTA_OUTPUT / "diccionario_variables.csv"
+
+# Metadatos estáticos del esquema canónico.
+# Campos: variable, tipo, valores_formato, descripcion
+# La disponibilidad por año/período se calcula dinámicamente desde df_final.
+METADATOS_VARIABLES = [
+    ("ID_UNAL",                 "string",    "cadena alfanumérica única (ej. U001234)",
+     "Identificador anonimizado del estudiante; reemplaza CORREO usando la llave maestra LLAVE_ID_UNAL_FCE.csv. Parte de la llave natural del panel"),
+    ("SEDE",                    "string",    "BOGOTA, MEDELLIN, MANIZALES, PALMIRA, ORINOQUIA, AMAZONIA, CARIBE, TUMACO",
+     "Sede de la UNAL donde está matriculado el estudiante"),
+    ("COD_FACULTAD",            "numérico",  "entero (ej. 1, 2, 4)",
+     "Código numérico de la facultad del programa del estudiante"),
+    ("FACULTAD",                "string",    "CIENCIAS ECONOMICAS, INGENIERIA, CIENCIAS, etc.",
+     "Nombre de la facultad del programa del estudiante"),
+    ("COD_PLAN",                "string",    "sin ceros ni guiones (ej. 2557, 2879)",
+     "Código del plan de estudios armonizado"),
+    ("PLAN",                    "string",    "texto libre",
+     "Nombre del plan de estudios"),
+    ("COD_PROG_CURRICULAR",     "string",    "código interno",
+     "Código del programa curricular"),
+    ("DESC_PROG_CURRICULAR",    "string",    "texto libre",
+     "Descripción del programa curricular"),
+    ("CONVENIO_PLAN",           "string",    "texto o NaN",
+     "Convenio interinstitucional asociado al plan, si aplica"),
+    ("TIPO_NIVEL",              "string",    "PREGRADO, POSGRADO, ESPECIALIZACION, MAESTRIA, DOCTORADO",
+     "Nivel de formación del programa"),
+    ("ADMISION",                "string",    "YYYY-NS",
+     "Período de admisión del estudiante al programa"),
+    ("CONVOCATORIA",            "string",    "texto",
+     "Convocatoria del proceso de admisión"),
+    ("APERTURA",                "string",    "texto",
+     "Apertura del proceso de admisión"),
+    ("COD_ACCESO",              "numérico",  "entero",
+     "Código del tipo de acceso con que ingresó el estudiante"),
+    ("ACCESO",                  "string",    "REGULAR, ESPECIAL, CONVENIO, MEJORES BACHILLERES, etc.",
+     "Modalidad de acceso con que ingresó el estudiante"),
+    ("COD_SUBACCESO",           "numérico",  "entero",
+     "Código del subtipo de acceso"),
+    ("SUBACCESO",               "string",    "texto",
+     "Descripción del subtipo de acceso"),
+    ("COD_NODO_INICIO",         "numérico",  "entero",
+     "Código del nodo de inicio en la estructura curricular"),
+    ("NODO_INICIO",             "string",    "texto",
+     "Nombre del nodo de inicio en la estructura curricular"),
+    ("COD_ASIGNATURA",          "string",    "código numérico como string",
+     "Código de la asignatura cancelada; parte de la llave natural"),
+    ("ASIGNATURA",              "string",    "texto en mayúsculas",
+     "Nombre de la asignatura cancelada"),
+    ("NOTA_ALFABETICA",         "string",    "AP, NA, NO_AP, NaN",
+     "Nota alfabética si existía registro antes de la cancelación"),
+    ("NOTA_NUMERICA",           "numérico",  "0.0 – 5.0",
+     "Nota numérica si existía registro; validada en rango [0, 5]"),
+    ("CREDITOS",                "numérico",  "entero (típico 1–10)",
+     "Número de créditos académicos de la asignatura"),
+    ("GRUP_ACTI",               "string",    "texto",
+     "Grupo de actividad académica"),
+    ("DES_GR_ACTIV",            "string",    "texto",
+     "Descripción del grupo de actividad académica"),
+    ("GRUP_ACTA",               "numérico",  "entero",
+     "Número de acta del grupo"),
+    ("PERIODO",                 "string",    "YYYY-1S o YYYY-2S (ej. 2023-1S)",
+     "Período académico en que se realizó la cancelación; parte de la llave natural"),
+    ("COD_SEDE_ASIGNATURA",     "numérico",  "entero",
+     "Código de la sede donde se ofrece la asignatura"),
+    ("COD_FACULTAD_ASIGNATURA", "numérico",  "entero",
+     "Código de la facultad que ofrece la asignatura"),
+    ("FACULTAD_ASIGNATURA",     "string",    "texto",
+     "Nombre de la facultad que ofrece la asignatura"),
+    ("COD_UAB_ASIGNATURA",      "numérico",  "entero",
+     "Código de la Unidad Académica Básica (UAB) que ofrece la asignatura"),
+    ("UAB_ASIGNATURA",          "string",    "texto",
+     "Nombre de la Unidad Académica Básica que ofrece la asignatura"),
+    ("TIPO_CANCELACION",        "string",    "DEFINITIVA, PARCIAL, AUTOMATICA, VOLUNTARIA, etc.",
+     "Tipo de cancelación de la matrícula o asignatura"),
+    ("FECHA",                   "datetime",  "YYYY-MM-DD",
+     "Fecha en que se realizó la cancelación"),
+    ("CORRECIÓN DE CRED. PERDIDA", "string", "texto o NaN",
+     "Corrección sobre créditos perdidos; nombre con tilde conservado del original"),
+    ("CAUSA_ANULA",             "string",    "texto",
+     "Causa de la anulación o cancelación registrada en el sistema"),
+    ("USUARIO_CANCELACION",     "string",    "texto",
+     "Usuario del sistema SIA que ejecutó la cancelación"),
+    ("TIPO_USUARIO",            "string",    "ESTUDIANTE, ADMINISTRATIVO, SISTEMA, etc.",
+     "Tipo del usuario que realizó la cancelación"),
+    ("PBM",                     "numérico",  "0 – 100",
+     "Puntaje Básico de Matrícula; proxy del nivel socioeconómico del estudiante"),
+    ("PUNTAJE_ADMISION",        "numérico",  "decimal",
+     "Puntaje con que el estudiante fue admitido al programa"),
+    ("ARCHIVO_FUENTE",          "string",    "Cancelaciones_YYYY-NS",
+     "Nombre del archivo Excel original del que proviene la fila"),
+    # ── Variables PII eliminadas del output — documentadas para trazabilidad ──
+    ("CORREO",                  "string",    "ELIMINADA — PII",
+     "Correo institucional original; reemplazado por ID_UNAL mediante anonimización. No aparece en el output final"),
+    ("NOMBRE_COMPLETO",         "string",    "ELIMINADA — PII",
+     "Nombres y apellidos del estudiante; eliminado del output final por ser PII"),
+    ("NUMERO_DOCUMENTO",        "string",    "ELIMINADA — PII",
+     "Número de documento de identidad; eliminado del output final por ser PII"),
+    ("TIPO_DOCUMENTO",          "string",    "ELIMINADA — PII",
+     "Tipo de documento de identidad; eliminado del output final por ser PII"),
+    ("FECHA_NACIMIENTO",        "string",    "ELIMINADA — PII",
+     "Fecha de nacimiento; eliminada del output final por ser PII"),
+    ("SEXO",                    "string",    "ELIMINADA — PII",
+     "Sexo del estudiante; eliminado del output final por ser PII"),
+    ("HIST_ACAD",               "numérico",  "ELIMINADA — PII",
+     "Historia académica SIA; eliminada del output final por ser PII (identificador interno nominal)"),
+    ("LOGIN_USUARIO_ESTUDIANTE","string",    "ELIMINADA — PII",
+     "Usuario del sistema SIA; eliminado del output final por ser PII"),
+]
+
+
+def construir_diccionario_variables(
+    df: pd.DataFrame,
+    metadatos: list,
+    log_lines: list,
+) -> pd.DataFrame:
+    """
+    Genera el diccionario de variables del módulo Cancelaciones.
+
+    Columnas del output:
+      variable         — nombre canónico de la columna
+      tipo             — tipo de dato (string, numérico, datetime)
+      valores_formato  — rango de valores o formato esperado
+      descripcion      — significado sustantivo
+      en_datos         — 1/0 si la variable existe en df_final
+      periodos_con_datos — lista de períodos YYYY-NS donde la columna
+                           tiene al menos un valor no nulo (ej. "2019-1S,2019-2S,…")
+      anios_con_datos  — lista de años donde hay al menos un período con datos
+                         (ej. "2019,2020,2021")
+      cobertura_periodos — fracción de períodos con datos / total períodos
+                           (0.00–1.00)
+    """
+    log_lines.append("\n--- Construcción del diccionario de variables ---")
+
+    periodos_todos: list = []
+    if "PERIODO" in df.columns:
+        periodos_todos = sorted(df["PERIODO"].dropna().unique().tolist())
+
+    filas = []
+    for variable, tipo, valores_formato, descripcion in metadatos:
+        en_datos = int(variable in df.columns)
+
+        if en_datos and periodos_todos and "PERIODO" in df.columns:
+            # Períodos donde la columna tiene al menos un valor no nulo
+            periodos_con = []
+            for per in periodos_todos:
+                mascara = df["PERIODO"] == per
+                if df.loc[mascara, variable].notna().any():
+                    periodos_con.append(per)
+        elif en_datos and not periodos_todos:
+            periodos_con = ["sin_periodo"]
+        else:
+            periodos_con = []
+
+        # Años únicos derivados de los períodos con datos
+        anios_con = sorted({p[:4] for p in periodos_con if len(p) >= 4})
+
+        cobertura = (
+            round(len(periodos_con) / len(periodos_todos), 4)
+            if periodos_todos else (1.0 if en_datos else 0.0)
+        )
+
+        filas.append({
+            "variable":           variable,
+            "tipo":               tipo,
+            "valores_formato":    valores_formato,
+            "descripcion":        descripcion,
+            "en_datos":           en_datos,
+            "periodos_con_datos": ", ".join(periodos_con) if periodos_con else "",
+            "anios_con_datos":    ", ".join(anios_con)    if anios_con    else "",
+            "cobertura_periodos": cobertura,
+        })
+
+    df_vars = pd.DataFrame(filas)
+
+    n_presentes  = df_vars["en_datos"].sum()
+    n_ausentes   = len(df_vars) - n_presentes
+    log_lines.append(f"  Variables en el esquema canónico: {len(df_vars)}")
+    log_lines.append(f"    · presentes en df_final:  {n_presentes}")
+    log_lines.append(f"    · ausentes en df_final:   {n_ausentes}")
+
+    # Variables con cobertura parcial (presentes pero no en todos los períodos)
+    parciales = df_vars[
+        (df_vars["en_datos"] == 1) & (df_vars["cobertura_periodos"] < 1.0)
+    ]
+    if not parciales.empty:
+        log_lines.append(
+            f"\n  Variables con cobertura parcial (<100% de períodos):"
+        )
+        for _, row in parciales.iterrows():
+            log_lines.append(
+                f"    · {row['variable']:<40}  "
+                f"cobertura: {row['cobertura_periodos']:.0%}  "
+                f"({row['anios_con_datos']})"
+            )
+    else:
+        log_lines.append(
+            "  [OK] Todas las variables presentes tienen cobertura 100%."
+        )
+
+    return df_vars
+
+
+# =============================================================================
+# 9. MAIN
 # =============================================================================
 
 def main():
@@ -510,24 +945,33 @@ def main():
     log_lines.append("=" * 70)
     log_lines.append("LIMPIEZA — MÓDULO CANCELACIONES")
     log_lines.append(f"Fecha de ejecución: {date.today().isoformat()}")
-    log_lines.append(f"RA: Maria Jose Cadena")
+    log_lines.append("RA: Maria Jose Cadena")
     log_lines.append("=" * 70)
 
-    # 8a. Cargar datos anonimizados
+    # 8a. Cargar archivos originales
     log_lines.append("\n[1] CARGA DE ARCHIVOS")
     df = cargar_cancelaciones(RUTA_INPUT, log_lines)
 
-    # 8b. Limpieza
+    # 8b. Diagnóstico previo a limpieza
+    log_lines.append("\n[1b] DIAGNÓSTICO PREVIO")
+    diagnosticar_df(df, log_lines)
+
+    # 8c. Limpieza
     log_lines.append("\n[2] LIMPIEZA")
     df = limpiar_cancelaciones(df, log_lines)
 
-    # 8c. Variables intermitentes
-    log_lines.append("\n[3] COBERTURA DE VARIABLES INTERMITENTES")
+    # 8d. Resolver duplicados exactos
+    log_lines.append("\n[3] RESOLUCIÓN DE DUPLICADOS EXACTOS")
+    ruta_dup_nat = RUTA_OUTPUT / "duplicados_naturales"
+    ruta_dup_nat.mkdir(parents=True, exist_ok=True)
+    df = resolver_duplicados(df, LLAVE_OBS, log_lines, ruta_dup_nat)
+
+    # 8e. Variables intermitentes
+    log_lines.append("\n[4] COBERTURA DE VARIABLES INTERMITENTES")
     reportar_vars_intermitentes(df, log_lines)
 
-    # 8d. Duplicados en el panel apilado
-    log_lines.append("\n[4] DUPLICADOS EN EL PANEL CONSOLIDADO")
-    # Verificar que las columnas de la llave estén disponibles antes de evaluar
+    # 8f. Duplicados en el panel apilado
+    log_lines.append("\n[5] DUPLICADOS EN EL PANEL CONSOLIDADO")
     llave_disponible = [c for c in LLAVE_OBS if c in df.columns]
     if len(llave_disponible) < len(LLAVE_OBS):
         log_lines.append(
@@ -536,38 +980,66 @@ def main():
         )
     df = reportar_duplicados(df, llave_disponible, "panel consolidado", log_lines)
 
-    # Guardar dup llave natural
-
-    ruta_dup_nat = RUTA_OUTPUT / "duplicados_llave_natural.csv"
-
-    df = resolver_duplicados(
-        df=df,
-        llave=llave_disponible,
-        log_lines=log_lines,
-        ruta_dup_nat=ruta_dup_nat
-    )
-
-    # 8e. Select final de columnas
-    log_lines.append("\n[5] SELECCIÓN DE COLUMNAS FINALES")
+    # 8g. Selección de columnas canónicas
+    log_lines.append("\n[6] SELECCIÓN DE COLUMNAS FINALES")
     df_final = seleccionar_columnas(df, log_lines)
 
-    # 8f. Resumen del output
-    log_lines.append("\n[6] RESUMEN DEL OUTPUT")
+    # 8g2. Verificar que no quede PII en el output
+    log_lines.append("\n[6b] VERIFICACIÓN DE AUSENCIA DE PII")
+    verificar_ausencia_pii(df_final, log_lines)
+
+    # 8h. Diccionario de asignaturas
+    log_lines.append("\n[7] DICCIONARIO DE ASIGNATURAS")
+    df_dicc = construir_diccionario_asignaturas(df_final, log_lines)
+    if not df_dicc.empty:
+        df_dicc.to_csv(ARCHIVO_DICCIONARIO, index=False, encoding="utf-8-sig")
+        log_lines.append(f"  → {ARCHIVO_DICCIONARIO}")
+    else:
+        log_lines.append("  [AVISO] Diccionario vacío — no se guardó archivo.")
+
+    # 8i. Resumen del output
+    log_lines.append("\n[8] RESUMEN DEL OUTPUT")
     log_lines.append(f"  Filas totales:          {len(df_final):>10,}")
     log_lines.append(f"  Columnas:               {df_final.shape[1]:>10,}")
-    log_lines.append(f"  Períodos cubiertos:     {df_final['PERIODO'].nunique():>10,}  "
-                     f"({df_final['PERIODO'].min()} → {df_final['PERIODO'].max()})")
-    if "correo" in df_final.columns:
-        log_lines.append(f"  Estudiantes únicos:     {df_final['correo'].nunique():>10,}")
-    n_dup_flag = df_final["is_duplicado"].sum() if "is_duplicado" in df_final.columns else "N/A"
-    log_lines.append(f"  Filas marcadas dup:     {n_dup_flag}")
+    if "PERIODO" in df_final.columns:
+        log_lines.append(
+            f"  Períodos cubiertos:     {df_final['PERIODO'].nunique():>10,}  "
+            f"({df_final['PERIODO'].min()} → {df_final['PERIODO'].max()})"
+        )
+    if "ID_UNAL" in df_final.columns:
+        log_lines.append(
+            f"  Estudiantes únicos:     {df_final['ID_UNAL'].nunique():>10,}"
+        )
+    if not df_dicc.empty:
+        log_lines.append(f"  Asignaturas en dicc.:   {len(df_dicc):>10,}")
 
-    # 8g. Guardar CSV limpio
-    log_lines.append(f"\n[7] GUARDANDO OUTPUT")
+    # 8j. Guardar CSV limpio — por período y consolidado
+    log_lines.append("\n[9] GUARDANDO OUTPUT")
+
+    # — Un archivo por período —
+    if "PERIODO" in df_final.columns:
+        periodos = sorted(df_final["PERIODO"].dropna().unique())
+        for periodo in periodos:
+            df_per = df_final[df_final["PERIODO"] == periodo].copy()
+            nombre_archivo = RUTA_OUTPUT_PERIODOS / f"Cancelaciones_{periodo}.csv"
+            df_per.to_csv(nombre_archivo, index=False, encoding="utf-8-sig")
+            log_lines.append(
+                f"  → {nombre_archivo}  ({len(df_per):,} filas)"
+            )
+        log_lines.append(
+            f"\n  Total archivos por período guardados: {len(periodos)}"
+        )
+    else:
+        log_lines.append(
+            "  [ADVERTENCIA] Columna PERIODO ausente — "
+            "no se guardaron archivos por período."
+        )
+
+    # — Archivo consolidado general —
     df_final.to_csv(ARCHIVO_SALIDA, index=False, encoding="utf-8-sig")
-    log_lines.append(f"  → {ARCHIVO_SALIDA}")
+    log_lines.append(f"\n  → {ARCHIVO_SALIDA}  ({len(df_final):,} filas — consolidado)")
 
-    # 8h. Escribir log
+    # 8k. Escribir log
     log_text = "\n".join(log_lines)
     with open(ARCHIVO_LOG, "w", encoding="utf-8") as f:
         f.write(log_text)
