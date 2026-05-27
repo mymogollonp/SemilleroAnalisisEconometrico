@@ -311,44 +311,162 @@ Si un RA detecta una variable que podría identificar estudiantes y no está lis
 - Verificar que todos los datasets limpios tienen `id_unal` correctamente asignado
 - Documentar estudiantes que aparecen en datasets secundarios pero no en Matriculados
 
-### Formato de períodos
-- Formato canónico: `YYYY-NS` (ej. `2016-1S`, `2023-2S`)
+### Formato de períodos y columnas de tiempo
+- Formato canónico del período: `YYYY-NS` (ej. `2016-1S`, `2023-2S`)
 - Manejar variantes: `20161`, `2016-I`, `2016S1`
 - Generar `periodo_num` (entero ordinal) para ordenamiento correcto en el panel
+- **Añadir a cada dataset armonizado:**
+  - `academic_anio` — año académico extraído del período (ej. `2016`)
+  - `academic_semester` — semestre extraído del período (`1` o `2`)
+
+### Diccionario de variables
+- Completar el diccionario de cada módulo con categorías bien definidas usando normativas y definiciones oficiales de la Universidad Nacional de Colombia (Acuerdo 008 de 2008, reglamentos estudiantiles, sistema SIA)
+- Documentar explícitamente los códigos numéricos de variables categóricas: `cod_acceso`, `cod_subacceso`, `cod_nodo_inicio`, `cod_nodo_fin`, `cod_facultad`, `cod_nivel`, `tipo_nivel`, `cod_etnia`, `cod_estado_civil`
+
+### Retirados — división por semestres
+- Evaluar si `Retirados_desde_2009.xlsx` contiene una variable de período de retiro que permita dividir en archivos por semestre (igual que las demás bases)
+- Si existe período de retiro: generar un CSV por semestre en `DatosArmonizados/2_DatosLimpios/Retirados/Retirados_[YYYY-NS]_limpio.csv`
+- Si no existe: documentar en el diccionario y conservar como archivo único
 
 ---
 
-## Fase 8 — Construcción del Panel Maestro
+## Fase 8 — Construcción de Bases de Trabajo
 
-**Do-file:** `4_BasesdeTrabajo/15_construir_panel.do`
-**Backbone:** `Matriculados` (define quién es estudiante activo en cada período)
+**Destino:** `FinalWorkingDataSets/`
+**Clave de observación en todas las bases:** `(id_unal, periodo, cod_plan)`
+**Regla:** cada base contiene exclusivamente las variables especificadas — no añadir columnas adicionales sin aprobación del PI/CoPI. Eliminar variables de texto que dupliquen categorías ya codificadas numéricamente.
 
-```
-Panel maestro: id_unal × periodo × cod_plan
-│
-├── join PERSONAS          → variables socioeconómicas e invariantes
-├── join CURSADAS          → desempeño académico por período
-├── join CANCELACIONES     → indicador cancelo_semestre
-├── join EGRESADOS         → indicador graduado, fecha_grado, titulo
-└── join RETIRADOS         → indicador retirado, periodo_retiro
-```
+---
 
-> **Nota:** join de Rendimiento Matemáticas Básicas queda pendiente hasta confirmar existencia y granularidad de esa fuente.
+### Base Matriculados
 
-**Clave del panel:** `(id_unal, periodo, cod_plan)`
-**Tipo de panel:** desequilibrado — un estudiante con doble titulación genera múltiples filas por período.
+**Script:** `3_BasesdeTrabajo/01_base_matriculados.[ext]`
+**Output:** `FinalWorkingDataSets/BASE_MATRICULADOS.csv`
+**Consolidar para todos los períodos disponibles.**
 
-### Variables de estado al cierre de cada período
+Completar variables con información faltante cruzando con otras bases (Cursadas, Egresados). No incluir créditos cursados, promedios ni PAPA — se recalcularán en fases posteriores.
 
-| Variable | Fuente | Descripción |
+#### Variables
+
+| Grupo | Variable | Descripción |
 |---|---|---|
-| `papa_periodo` | Cursadas | GPA acumulado al período |
-| `promedio_periodo` | Cursadas | Promedio del semestre |
-| `creditos_aprob` | Cursadas | Créditos aprobados en el período |
-| `creditos_reprob` | Cursadas | Créditos reprobados en el período |
-| `cancelo` | Cancelaciones | 1 si canceló el semestre completo |
-| `graduado` | Egresados | 1 si se graduó en este período |
-| `retirado` | Retirados | 1 si se retiró del programa |
+| **Clave** | `id_unal` | ID anónimo del estudiante |
+| **Clave** | `periodo` | Período académico (`YYYY-NS`) |
+| **Clave** | `academic_anio` | Año académico |
+| **Clave** | `academic_semester` | Semestre (`1` o `2`) |
+| **Clave** | `cod_plan` | Código del plan de estudios |
+| **Programa** | `cod_programa` | Código del programa curricular |
+| **Programa** | `cod_sede` | Código de sede |
+| **Programa** | `sede` | Nombre de sede |
+| **Programa** | `cod_facultad` | Código de facultad |
+| **Programa** | `facultad` | Nombre de facultad |
+| **Programa** | `cod_nivel` | Código de nivel (pregrado/posgrado) |
+| **Programa** | `tipo_nivel` | Descripción del nivel |
+| **Inicio** | `puntaje_admision` | Puntaje de admisión |
+| **Inicio** | `convocatoria` | Convocatoria de admisión |
+| **Inicio** | `cod_acceso` | Código de modalidad de acceso |
+| **Inicio** | `acceso` | Descripción de modalidad de acceso |
+| **Inicio** | `cod_subacceso` | Código de sub-modalidad de acceso |
+| **Inicio** | `cod_nodo_inicio` | Código de nodo de inicio (nivelación o no) |
+| **Inicio** | `nodo_inicio` | Descripción del nodo de inicio |
+| **Inicio** | `fecha_inscripcion` | Fecha de carga de inscripción |
+| **Socioeconómica** | `sexo` | Sexo/género (valor canónico: M, F, X) |
+| **Socioeconómica** | `fecha_nacimiento` | Fecha de nacimiento (`YYYY-MM-DD`) |
+| **Socioeconómica** | `edad_periodo` | Edad del estudiante en el período |
+| **Socioeconómica** | `cod_estado_civil` | Código de estado civil |
+| **Socioeconómica** | `cod_departamento_residencia` | Código DANE del departamento de residencia |
+| **Socioeconómica** | `municipio_residencia` | Municipio de residencia |
+| **Socioeconómica** | `cod_pais_nacimiento` | Código del país de nacimiento |
+| **Socioeconómica** | `municipio_nacimiento` | Municipio de nacimiento |
+| **Socioeconómica** | `cod_etnia` | Código de pertenencia étnica |
+| **Socioeconómica** | `tipo_colegio` | Tipo de colegio de origen (oficial / no oficial) |
+| **Socioeconómica** | `cod_colegio` | Código del colegio de origen |
+| **Socioeconómica** | `anio_terminacion_colegio` | Año de terminación del bachillerato |
+| **Socioeconómica** | `pbm_consolidado` | Puntaje Básico de Matrícula consolidado |
+| **Socioeconómica** | `pbm_*` | Puntajes PBM por categoría (una columna por categoría disponible) |
+
+---
+
+### Base Cursadas
+
+**Script:** `3_BasesdeTrabajo/02_base_cursadas.[ext]`
+**Output:** `FinalWorkingDataSets/BASE_CURSADAS.csv`
+**Consolidar para todos los períodos disponibles.**
+
+No incluir variables distintas a las especificadas.
+
+#### Variables
+
+| Grupo | Variable | Descripción |
+|---|---|---|
+| **Clave** | `id_unal` | ID anónimo del estudiante |
+| **Clave** | `periodo` | Período académico (`YYYY-NS`) |
+| **Clave** | `academic_anio` | Año académico |
+| **Clave** | `academic_semester` | Semestre (`1` o `2`) |
+| **Clave** | `cod_plan` | Código del plan de estudios |
+| **Créditos período** | `creditos_cursados_periodo` | Total de créditos cursados en el período-plan |
+| **Créditos período** | `creditos_cursados_periodo_*` | Créditos cursados por tipología (DIS_OB, DIS_OP, FUN_OB, FUN_OP, LE, TG, NIVELACION) |
+| **Créditos período** | `creditos_aprobados_periodo` | Créditos aprobados (nota ≥ 3.0) en el período |
+| **Créditos período** | `creditos_reprobados_periodo` | Créditos reprobados (nota < 3.0) en el período |
+| **Créditos acumulados** | `creditos_cursados_acumulados` | Créditos cursados acumulados desde el inicio |
+| **Créditos plan** | `creditos_requeridos_plan` | Total de créditos requeridos por el plan para graduarse *(pendiente confirmar disponibilidad)* |
+| **Promedios** | `promedio_simple_periodo` | Promedio simple de calificaciones del período |
+| **Promedios** | `promedio_simple_acumulado` | Promedio simple acumulado hasta el período |
+| **Promedios** | `papa_periodo` | PAPA del período (promedio aritmético ponderado acumulado oficial UNAL) |
+
+---
+
+### Base Cancelaciones
+
+**Script:** `3_BasesdeTrabajo/03_base_cancelaciones.[ext]`
+**Output:** `FinalWorkingDataSets/BASE_CANCELACIONES.csv`
+**Consolidar para todos los períodos disponibles.**
+
+No incluir variables distintas a las especificadas.
+
+#### Variables
+
+| Grupo | Variable | Descripción |
+|---|---|---|
+| **Clave** | `id_unal` | ID anónimo del estudiante |
+| **Clave** | `periodo` | Período académico (`YYYY-NS`) |
+| **Clave** | `academic_anio` | Año académico |
+| **Clave** | `academic_semester` | Semestre (`1` o `2`) |
+| **Clave** | `cod_plan` | Código del plan de estudios |
+| **Cancelaciones período** | `creditos_cancelados_periodo` | Total de créditos cancelados en el período-plan |
+| **Cancelaciones período** | `materias_canceladas_periodo` | Número de materias canceladas en el período |
+| **Cancelaciones período** | `materias_canceladas_periodo_*` | Número de materias canceladas por tipo de cancelación |
+| **Cancelaciones acumuladas** | `creditos_cancelados_acumulados` | Créditos cancelados acumulados desde el inicio |
+| **Cancelaciones acumuladas** | `materias_canceladas_acumuladas` | Número de materias canceladas acumuladas hasta el período |
+
+---
+
+### Base Egresados-Retirados
+
+**Script:** `3_BasesdeTrabajo/04_base_egresados_retirados.[ext]`
+**Output:** `FinalWorkingDataSets/BASE_EGRESADOS_RETIRADOS.csv`
+**Consolidar para todos los períodos disponibles.**
+
+No incluir variables distintas a las especificadas.
+
+#### Variables
+
+| Grupo | Variable | Descripción |
+|---|---|---|
+| **Clave** | `id_unal` | ID anónimo del estudiante |
+| **Clave** | `periodo` | Período académico (`YYYY-NS`) |
+| **Clave** | `academic_anio` | Año académico |
+| **Clave** | `academic_semester` | Semestre (`1` o `2`) |
+| **Clave** | `cod_plan` | Código del plan de estudios |
+| **Estado** | `graduado` | Binaria: 1 si se graduó en este período-plan, 0 si no |
+| **Estado** | `retirado` | Binaria: 1 si se retiró en este período-plan, 0 si no |
+| **Graduación** | `papa_acumulado_graduacion` | PAPA con el que se graduó |
+| **Graduación** | `creditos_cursados_acumulados_graduacion` | Total de créditos cursados al momento de graduación |
+| **Graduación** | `graduacion_con_meritos` | Binaria: 1 si se graduó con mérito |
+| **Graduación** | `graduacion_normal` | Binaria: 1 si se graduó sin distinción especial |
+| **Retiro** | `motivo_retiro` | Motivo de retiro del programa |
+| **Cohorte** | `cohorte_admision` | Período de admisión al programa (`YYYY-NS`) |
+| **Cohorte** | `percentil_cohorte_admision` | Percentil del puntaje de admisión dentro de la cohorte |
 
 ---
 
