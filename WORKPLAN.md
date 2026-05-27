@@ -352,8 +352,8 @@ Completar variables con información faltante cruzando con otras bases (Cursadas
 |---|---|---|
 | **Clave** | `id_unal` | ID anónimo del estudiante |
 | **Clave** | `periodo` | Período académico (`YYYY-NS`) |
-| **Clave** | `academic_anio` | Año académico |
-| **Clave** | `academic_semester` | Semestre (`1` o `2`) |
+| **Clave** | `academic_año` | Año académico |
+| **Clave** | `academic_semestre` | Semestre (`1` o `2`) |
 | **Clave** | `cod_plan` | Código del plan de estudios |
 | **Programa** | `cod_programa` | Código del programa curricular |
 | **Programa** | `cod_sede` | Código de sede |
@@ -375,15 +375,19 @@ Completar variables con información faltante cruzando con otras bases (Cursadas
 | **Socioeconómica** | `edad_periodo` | Edad del estudiante en el período |
 | **Socioeconómica** | `cod_estado_civil` | Código de estado civil |
 | **Socioeconómica** | `cod_departamento_residencia` | Código DANE del departamento de residencia |
+| **Socioeconómica** | `departamento_residencia` | departamento de residencia |
 | **Socioeconómica** | `municipio_residencia` | Municipio de residencia |
-| **Socioeconómica** | `cod_pais_nacimiento` | Código del país de nacimiento |
+| **Socioeconómica** | `cod_municipio_residencia` | Código DANE del municipio de residencia |
+| **Socioeconómica** | `pais_nacimiento` | País de nacimiento |
 | **Socioeconómica** | `municipio_nacimiento` | Municipio de nacimiento |
-| **Socioeconómica** | `cod_etnia` | Código de pertenencia étnica |
+| **Socioeconómica** | `cod_municipio_nacimiento` | Código DANE del municipio de nacimiento |
+| **Socioeconómica** | `etnia` | Pertenencia étnica |
 | **Socioeconómica** | `tipo_colegio` | Tipo de colegio de origen (oficial / no oficial) |
 | **Socioeconómica** | `cod_colegio` | Código del colegio de origen |
 | **Socioeconómica** | `anio_terminacion_colegio` | Año de terminación del bachillerato |
 | **Socioeconómica** | `pbm_consolidado` | Puntaje Básico de Matrícula consolidado |
 | **Socioeconómica** | `pbm_*` | Puntajes PBM por categoría (una columna por categoría disponible) |
+| **Socioeconómica** | `estrato` | Estrato socioeconómico |
 
 ---
 
@@ -401,18 +405,18 @@ No incluir variables distintas a las especificadas.
 |---|---|---|
 | **Clave** | `id_unal` | ID anónimo del estudiante |
 | **Clave** | `periodo` | Período académico (`YYYY-NS`) |
-| **Clave** | `academic_anio` | Año académico |
-| **Clave** | `academic_semester` | Semestre (`1` o `2`) |
+| **Clave** | `academic_año` | Año académico |
+| **Clave** | `academic_semestre` | Semestre (`1` o `2`) |
 | **Clave** | `cod_plan` | Código del plan de estudios |
 | **Créditos período** | `creditos_cursados_periodo` | Total de créditos cursados en el período-plan |
-| **Créditos período** | `creditos_cursados_periodo_*` | Créditos cursados por tipología (DIS_OB, DIS_OP, FUN_OB, FUN_OP, LE, TG, NIVELACION) |
+| **Créditos período** | `creditos_cursados_periodo_*` | Créditos cursados por tipología  |
 | **Créditos período** | `creditos_aprobados_periodo` | Créditos aprobados (nota ≥ 3.0) en el período |
 | **Créditos período** | `creditos_reprobados_periodo` | Créditos reprobados (nota < 3.0) en el período |
 | **Créditos acumulados** | `creditos_cursados_acumulados` | Créditos cursados acumulados desde el inicio |
 | **Créditos plan** | `creditos_requeridos_plan` | Total de créditos requeridos por el plan para graduarse *(pendiente confirmar disponibilidad)* |
 | **Promedios** | `promedio_simple_periodo` | Promedio simple de calificaciones del período |
 | **Promedios** | `promedio_simple_acumulado` | Promedio simple acumulado hasta el período |
-| **Promedios** | `papa_periodo` | PAPA del período (promedio aritmético ponderado acumulado oficial UNAL) |
+| **Promedios** | `papa_periodo` | PAPA del período  |
 
 ---
 
@@ -466,7 +470,7 @@ No incluir variables distintas a las especificadas.
 | **Graduación** | `graduacion_normal` | Binaria: 1 si se graduó sin distinción especial |
 | **Retiro** | `motivo_retiro` | Motivo de retiro del programa |
 | **Cohorte** | `cohorte_admision` | Período de admisión al programa (`YYYY-NS`) |
-| **Cohorte** | `percentil_cohorte_admision` | Percentil del puntaje de admisión dentro de la cohorte |
+| **Cohorte** | `percentil_cohorte_admision` | Percentil promedio papa entre la cohorte de admisión dentro de la cohorte |
 
 ---
 
@@ -481,8 +485,7 @@ Checklist automatizado:
 - [ ] Calificaciones en rango 0–5 en todas las variables de promedio
 - [ ] Períodos en rango 2009-1S a 2025-2S
 - [ ] Ningún estudiante con `graduado=1` y `retirado=1` simultáneamente
-- [ ] Distribución de estrato consistente con promedios UNAL reportados
-- [ ] Conteo de observaciones por período vs. totales en fuentes oficiales
+
 
 ---
 
