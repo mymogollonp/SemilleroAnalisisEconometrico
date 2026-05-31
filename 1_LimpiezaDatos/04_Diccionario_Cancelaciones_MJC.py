@@ -44,7 +44,7 @@ from config import DIR_DATOS
 
 RUTA_INPUT  = DIR_DATOS / "DatosOriginales"  / "Cancelaciones"
 RUTA_OUTPUT = DIR_DATOS / "DatosArmonizados" / "Cancelaciones"
-ARCHIVO_EXCEL = RUTA_OUTPUT / "Diccionario_Cancelaciones.xlsx"
+ARCHIVO_EXCEL = RUTA_OUTPUT / "Mapeo_Variables_Cancelaciones.xlsx"
 
 # =============================================================================
 # VARIABLES A INVENTARIAR
