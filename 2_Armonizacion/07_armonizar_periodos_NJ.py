@@ -88,7 +88,8 @@ if nulos_periodo:
 # 4. PARTIR Y GUARDAR UN CSV POR PERIODO
 # =============================================================================
 
-conteo = {}
+DIR_LIMPIOS.mkdir(parents=True, exist_ok=True)
+DIR_INCONSISTENTES.mkdir(parents=True, exist_ok=True)
 
 for periodo, grupo in df.groupby("PERIODO_BLOQUEO", dropna=False):
     parsed = parsear_periodo(periodo) if pd.notna(periodo) else None
@@ -106,13 +107,28 @@ for periodo, grupo in df.groupby("PERIODO_BLOQUEO", dropna=False):
 
     carpeta = DIR_INCONSISTENTES if es_inconsistente else DIR_LIMPIOS
     grupo.to_csv(carpeta / nombre_archivo, index=False, sep=";", encoding="utf-8-sig")
+
+print(f"Archivos generados en: {DIR_OUTPUT}")
+
+
+#%% =============================================================================
+# 5. RESUMEN POR PERIODO 
+# =============================================================================
+
+conteo = {}
+for periodo, grupo in df.groupby("PERIODO_BLOQUEO", dropna=False):
+    parsed = parsear_periodo(periodo) if pd.notna(periodo) else None
+    es_inconsistente = (
+        pd.isna(periodo)
+        or parsed is None
+        or parsed < PERIODO_MIN
+        or parsed > PERIODO_MAX
+    )
     conteo[periodo] = (len(grupo), es_inconsistente)
 
-print(f"\nArchivos generados en: {DIR_OUTPUT}")
-print(f"Total archivos: {len(conteo)}")
+print(f"Total periodos: {len(conteo)}")
 print(f"\nFilas por periodo:")
 for p, (n, inconsistente) in sorted(conteo.items(), key=lambda x: (x[0] is None, x[0])):
-    marca = ""
     parsed = parsear_periodo(p) if pd.notna(p) else None
     if pd.isna(p) or parsed is None:
         marca = "  ← formato raro o nulo  [inconsistentes]"
