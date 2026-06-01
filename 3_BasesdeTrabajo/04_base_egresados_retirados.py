@@ -193,3 +193,33 @@ print(f"\n{'=' * 70}")
 print(f"FILAS CON graduado=1 y retirado=1  ({len(ambos)} casos)")
 print(f"{'=' * 70}")
 print(ambos.to_string(index=False))
+
+
+#%% =============================================================================
+# 8. VALIDACIÓN: egresados sin PROM_GRADUADO
+# =============================================================================
+
+egr_sin_nota = merged[
+    (merged["graduado"] == 1) & merged["PROM_GRADUADO"].isna()
+]
+
+total_egr = int(merged["graduado"].sum())
+n_sin_nota = len(egr_sin_nota)
+
+print(f"\n{'=' * 70}")
+print("VALIDACIÓN: PROM_GRADUADO en egresados")
+print(f"{'=' * 70}")
+print(f"  Total egresados (graduado=1) : {total_egr}")
+print(f"  Con PROM_GRADUADO vacío      : {n_sin_nota}  ({n_sin_nota / total_egr * 100:.1f}%)")
+
+if n_sin_nota > 0:
+    por_periodo = (
+        egr_sin_nota.groupby("periodo")
+        .size()
+        .rename("sin_nota")
+        .reset_index()
+        .sort_values("periodo")
+    )
+    print(f"\n  Distribución por periodo:")
+    for _, row in por_periodo.iterrows():
+        print(f"    {row['periodo']}: {int(row['sin_nota'])} sin nota")
