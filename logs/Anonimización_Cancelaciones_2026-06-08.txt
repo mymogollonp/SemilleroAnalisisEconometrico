@@ -1,0 +1,230 @@
+=== Anonimización Cancelaciones — 2026-06-08 ===
+
+Archivos encontrados: 32
+
+
+--- Procesando: Cancelaciones_2009-2S.csv ---
+  Filas cargadas: 3,608
+  [OK] Todos los correos mapeados a ID_UNAL (3,608 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2009-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2010-1S.csv ---
+  Filas cargadas: 5,051
+  [OK] Todos los correos mapeados a ID_UNAL (5,051 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2010-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2010-2S.csv ---
+  Filas cargadas: 7,384
+  [OK] Todos los correos mapeados a ID_UNAL (7,384 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2010-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2011-1S.csv ---
+  Filas cargadas: 7,120
+  [OK] Todos los correos mapeados a ID_UNAL (7,120 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2011-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2011-2S.csv ---
+  Filas cargadas: 13,586
+  [OK] Todos los correos mapeados a ID_UNAL (13,586 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2011-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2012-1S.csv ---
+  Filas cargadas: 11,126
+  [OK] Todos los correos mapeados a ID_UNAL (11,126 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2012-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2012-2S.csv ---
+  Filas cargadas: 11,425
+  [OK] Todos los correos mapeados a ID_UNAL (11,425 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2012-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2013-1S.csv ---
+  Filas cargadas: 7,068
+  [OK] Todos los correos mapeados a ID_UNAL (7,068 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2013-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2013-2S.csv ---
+  Filas cargadas: 7,786
+  [OK] Todos los correos mapeados a ID_UNAL (7,786 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2013-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2014-1S.csv ---
+  Filas cargadas: 9,592
+  [OK] Todos los correos mapeados a ID_UNAL (9,592 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2014-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2014-2S.csv ---
+  Filas cargadas: 9,534
+  [OK] Todos los correos mapeados a ID_UNAL (9,534 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2014-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2015-1S.csv ---
+  Filas cargadas: 9,513
+  [OK] Todos los correos mapeados a ID_UNAL (9,513 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2015-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2015-2S.csv ---
+  Filas cargadas: 9,012
+  [OK] Todos los correos mapeados a ID_UNAL (9,012 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2015-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2016-1S.csv ---
+  Filas cargadas: 10,132
+  [OK] Todos los correos mapeados a ID_UNAL (10,132 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2016-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2016-2S.csv ---
+  Filas cargadas: 8,871
+  [OK] Todos los correos mapeados a ID_UNAL (8,871 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2016-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2017-1S.csv ---
+  Filas cargadas: 6,562
+  [OK] Todos los correos mapeados a ID_UNAL (6,562 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2017-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2017-2S.csv ---
+  Filas cargadas: 4,524
+  [OK] Todos los correos mapeados a ID_UNAL (4,524 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2017-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2018-1S.csv ---
+  Filas cargadas: 5,605
+  [OK] Todos los correos mapeados a ID_UNAL (5,605 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2018-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2018-2S.csv ---
+  Filas cargadas: 7,357
+  [OK] Todos los correos mapeados a ID_UNAL (7,357 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2018-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2019-1S.csv ---
+  Filas cargadas: 4,228
+  [OK] Todos los correos mapeados a ID_UNAL (4,227 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2019-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2019-2S.csv ---
+  Filas cargadas: 8,950
+  [OK] Todos los correos mapeados a ID_UNAL (8,950 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2019-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2020-1S.csv ---
+  Filas cargadas: 24,358
+  [OK] Todos los correos mapeados a ID_UNAL (24,358 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2020-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2020-2S.csv ---
+  Filas cargadas: 26,404
+  [OK] Todos los correos mapeados a ID_UNAL (26,404 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2020-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2021-1S.csv ---
+  Filas cargadas: 32,350
+  [OK] Todos los correos mapeados a ID_UNAL (32,350 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2021-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2021-2S.csv ---
+  Filas cargadas: 33,387
+  [OK] Todos los correos mapeados a ID_UNAL (33,387 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2021-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2022-1S.csv ---
+  Filas cargadas: 24,893
+  [OK] Todos los correos mapeados a ID_UNAL (24,893 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2022-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2022-2S.csv ---
+  Filas cargadas: 4,344
+  [OK] Todos los correos mapeados a ID_UNAL (4,344 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2022-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2023-1S.csv ---
+  Filas cargadas: 5,960
+  [OK] Todos los correos mapeados a ID_UNAL (5,960 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2023-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2023-2S.csv ---
+  Filas cargadas: 5,174
+  [OK] Todos los correos mapeados a ID_UNAL (5,174 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2023-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2024-1S.csv ---
+  Filas cargadas: 22,047
+  [OK] Todos los correos mapeados a ID_UNAL (22,047 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2024-1S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2024-2S.csv ---
+  Filas cargadas: 3,484
+  [OK] Todos los correos mapeados a ID_UNAL (3,484 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2024-2S_anonimizado.csv
+
+--- Procesando: Cancelaciones_2025-1S.csv ---
+  Filas cargadas: 4,166
+  [OK] Todos los correos mapeados a ID_UNAL (4,166 filas).
+  PII eliminadas: ['NOMBRE_COMPLETO', 'NUMERO_DOCUMENTO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO', 'SEXO', 'LOGIN_USUARIO_ESTUDIANTE', 'HIST_ACAD']
+  [OK] Sin columnas PII en el output final.
+  Guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados\Cancelaciones_2025-1S_anonimizado.csv
+
+[OK] Consolidado guardado: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\Cancelaciones_anonimizado.csv (354,601 filas)

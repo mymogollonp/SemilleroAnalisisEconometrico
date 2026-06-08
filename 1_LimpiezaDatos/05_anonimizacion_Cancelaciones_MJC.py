@@ -141,4 +141,62 @@ def verificar_ausencia_pii(df: pd.DataFrame, log_lines: list) -> None:
     else:
         log_lines.append("  [OK] Sin columnas PII en el output final.")
 
+# =============================================================================
+# 7. PIPELINE PRINCIPAL
+# =============================================================================
+
+def procesar_periodo(archivo: Path, log_lines: list) -> pd.DataFrame | None:
+    """Carga, anonimiza y limpia un archivo de cancelaciones por período."""
+    log_lines.append(f"\n--- Procesando: {archivo.name} ---")
+    try:
+        df = pd.read_csv(archivo, dtype=str)
+        log_lines.append(f"  Filas cargadas: {len(df):,}")
+
+        df = anonimizar_correo(df, log_lines)
+        df = eliminar_pii(df, log_lines)
+        verificar_ausencia_pii(df, log_lines)
+
+        # Guardar CSV por período
+        periodo = archivo.stem.replace("Cancelaciones_", "")
+        ruta_out = RUTA_OUTPUT_PERIODOS / f"Cancelaciones_{periodo}_anonimizado.csv"
+        df.to_csv(ruta_out, index=False)
+        log_lines.append(f"  Guardado: {ruta_out}")
+        return df
+
+    except Exception as e:
+        log_lines.append(f"  [ERROR] {e}")
+        return None
+
+
+def main():
+    log_lines = [f"=== Anonimización Cancelaciones — {date.today()} ===\n"]
+
+    archivos = sorted(RUTA_INPUT.glob("Cancelaciones_*.csv"))
+    log_lines.append(f"Archivos encontrados: {len(archivos)}\n")
+
+    dfs = []
+    for archivo in archivos:
+        df = procesar_periodo(archivo, log_lines)
+        if df is not None:
+            dfs.append(df)
+
+    # Consolidado final
+    if dfs:
+        consolidado = pd.concat(dfs, ignore_index=True)
+        consolidado.to_csv(ARCHIVO_SALIDA, index=False)
+        log_lines.append(
+            f"\n[OK] Consolidado guardado: {ARCHIVO_SALIDA} "
+            f"({len(consolidado):,} filas)"
+        )
+    else:
+        log_lines.append("\n[ERROR] No se generó ningún output.")
+
+    # Escribir log
+    ARCHIVO_LOG.write_text("\n".join(log_lines), encoding="utf-8")
+    print("\n".join(log_lines))
+
+
+if __name__ == "__main__":
+    main()
+
 #%%

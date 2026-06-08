@@ -1,0 +1,61 @@
+2026-06-08 14:31:51  ======================================================================
+2026-06-08 14:31:51  FASE 8 — BASE_CANCELACIONES  |  Inicio: 2026-06-08 14:31:51
+2026-06-08 14:31:51  ======================================================================
+2026-06-08 14:31:51  [CARGA] Buscando CSV en: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\1_DatosAnonimizados
+2026-06-08 14:31:51  [CARGA][OK] Cancelaciones_2009-2S_anonimizado.csv: 3,608 filas | 42 columnas
+2026-06-08 14:31:51  [CARGA][OK] Cancelaciones_2010-1S_anonimizado.csv: 5,051 filas | 42 columnas
+2026-06-08 14:31:51  [CARGA][OK] Cancelaciones_2010-2S_anonimizado.csv: 7,384 filas | 42 columnas
+2026-06-08 14:31:51  [CARGA][OK] Cancelaciones_2011-1S_anonimizado.csv: 7,120 filas | 42 columnas
+2026-06-08 14:31:52  [CARGA][OK] Cancelaciones_2011-2S_anonimizado.csv: 13,586 filas | 42 columnas
+2026-06-08 14:31:52  [CARGA][OK] Cancelaciones_2012-1S_anonimizado.csv: 11,126 filas | 42 columnas
+2026-06-08 14:31:52  [CARGA][OK] Cancelaciones_2012-2S_anonimizado.csv: 11,425 filas | 42 columnas
+2026-06-08 14:31:52  [CARGA][OK] Cancelaciones_2013-1S_anonimizado.csv: 7,068 filas | 42 columnas
+2026-06-08 14:31:52  [CARGA][OK] Cancelaciones_2013-2S_anonimizado.csv: 7,786 filas | 42 columnas
+2026-06-08 14:31:53  [CARGA][OK] Cancelaciones_2014-1S_anonimizado.csv: 9,592 filas | 42 columnas
+2026-06-08 14:31:53  [CARGA][OK] Cancelaciones_2014-2S_anonimizado.csv: 9,534 filas | 42 columnas
+2026-06-08 14:31:53  [CARGA][OK] Cancelaciones_2015-1S_anonimizado.csv: 9,513 filas | 42 columnas
+2026-06-08 14:31:53  [CARGA][OK] Cancelaciones_2015-2S_anonimizado.csv: 9,012 filas | 42 columnas
+2026-06-08 14:31:54  [CARGA][OK] Cancelaciones_2016-1S_anonimizado.csv: 10,132 filas | 42 columnas
+2026-06-08 14:31:54  [CARGA][OK] Cancelaciones_2016-2S_anonimizado.csv: 8,871 filas | 42 columnas
+2026-06-08 14:31:54  [CARGA][OK] Cancelaciones_2017-1S_anonimizado.csv: 6,562 filas | 42 columnas
+2026-06-08 14:31:54  [CARGA][OK] Cancelaciones_2017-2S_anonimizado.csv: 4,524 filas | 42 columnas
+2026-06-08 14:31:54  [CARGA][OK] Cancelaciones_2018-1S_anonimizado.csv: 5,605 filas | 42 columnas
+2026-06-08 14:31:55  [CARGA][OK] Cancelaciones_2018-2S_anonimizado.csv: 7,357 filas | 42 columnas
+2026-06-08 14:31:55  [CARGA][OK] Cancelaciones_2019-1S_anonimizado.csv: 4,228 filas | 42 columnas
+2026-06-08 14:31:55  [CARGA][OK] Cancelaciones_2019-2S_anonimizado.csv: 8,950 filas | 42 columnas
+2026-06-08 14:31:56  [CARGA][OK] Cancelaciones_2020-1S_anonimizado.csv: 24,358 filas | 42 columnas
+2026-06-08 14:31:56  [CARGA][OK] Cancelaciones_2020-2S_anonimizado.csv: 26,404 filas | 42 columnas
+2026-06-08 14:31:57  [CARGA][OK] Cancelaciones_2021-1S_anonimizado.csv: 32,350 filas | 42 columnas
+2026-06-08 14:31:58  [CARGA][OK] Cancelaciones_2021-2S_anonimizado.csv: 33,387 filas | 42 columnas
+2026-06-08 14:31:59  [CARGA][OK] Cancelaciones_2022-1S_anonimizado.csv: 24,893 filas | 42 columnas
+2026-06-08 14:31:59  [CARGA][OK] Cancelaciones_2022-2S_anonimizado.csv: 4,344 filas | 42 columnas
+2026-06-08 14:31:59  [CARGA][OK] Cancelaciones_2023-1S_anonimizado.csv: 5,960 filas | 42 columnas
+2026-06-08 14:31:59  [CARGA][OK] Cancelaciones_2023-2S_anonimizado.csv: 5,174 filas | 42 columnas
+2026-06-08 14:32:00  [CARGA][OK] Cancelaciones_2024-1S_anonimizado.csv: 22,047 filas | 42 columnas
+2026-06-08 14:32:00  [CARGA][OK] Cancelaciones_2024-2S_anonimizado.csv: 3,484 filas | 42 columnas
+2026-06-08 14:32:00  [CARGA][OK] Cancelaciones_2025-1S_anonimizado.csv: 4,166 filas | 42 columnas
+2026-06-08 14:32:00  [CARGA] Total consolidado: 354,601 filas | 42 columnas | 32 archivos
+2026-06-08 14:32:00  [NORM] Normalizando nombres de columnas
+2026-06-08 14:32:01  [NORM] Columnas renombradas: {'CORRECIÓN DE CRED. PERDIDA': 'CORRECCION_CRED_PERDIDA'}
+2026-06-08 14:32:01  [COLS] Verificando cobertura de columnas
+2026-06-08 14:32:01  [COLS][OK] Todas las columnas esperadas están presentes
+2026-06-08 14:32:01  [PII] Verificando ausencia de datos personales
+2026-06-08 14:32:01  [PII][OK] Sin columnas PII residuales
+2026-06-08 14:32:01  [PERIODO] Derivando academic_anio y academic_semester desde PERIODO
+2026-06-08 14:32:02  [PERIODO][OK] academic_anio derivado
+2026-06-08 14:32:02  [PERIODO][OK] academic_semester derivado
+2026-06-08 14:32:02  [TIPOS] Convirtiendo columnas numéricas
+2026-06-08 14:32:02  [TIPOS][OK] NOTA_NUMERICA → numérico
+2026-06-08 14:32:03  [TIPOS][OK] CREDITOS → numérico
+2026-06-08 14:32:03  [TIPOS][OK] PBM → numérico
+2026-06-08 14:32:03  [TIPOS][OK] PUNTAJE_ADMISION → numérico
+2026-06-08 14:32:03  [TIPOS][OK] FECHA → datetime
+2026-06-08 14:32:03  [CLAVE] Verificando unicidad de ['ID_UNAL', 'PERIODO', 'COD_PLAN', 'COD_ASIGNATURA']
+2026-06-08 14:32:04  [CLAVE][WARN] 9,499 filas duplicadas en la clave ['ID_UNAL', 'PERIODO', 'COD_PLAN', 'COD_ASIGNATURA']. Pueden corresponder a correcciones o cancelaciones múltiples. Revisar si se requiere desambiguar.
+2026-06-08 14:32:04  [COLS] Seleccionando variables aprobadas
+2026-06-08 14:32:04  [COLS][OK] 44 variables en la base final
+2026-06-08 14:32:04  [EXPORT] Escribiendo: G:\.shortcut-targets-by-id\10I6zKIZovl02Q4Q7DklodKBGjHWu6boA\SemilleroAnalisisEconometrico\DatosArmonizados\Cancelaciones\3_BasedeTrabajo\BASE_CANCELACIONES.csv
+2026-06-08 14:32:26  [EXPORT][OK] 354,601 filas | 44 columnas | 175656.2 KB
+2026-06-08 14:32:26  ======================================================================
+2026-06-08 14:32:26  FASE 8 — BASE_CANCELACIONES  |  Fin: 2026-06-08 14:32:26
+2026-06-08 14:32:26  ======================================================================
