@@ -142,41 +142,108 @@ def obtener_col_label(df: pd.DataFrame, variable: str) -> str | None:
     return None
 
 
+def construir_reporte_nas(
+    df: pd.DataFrame,
+    variable: str,
+    cols_archivos: list[str],
+) -> pd.DataFrame:
+    """
+    Genera un mini-reporte de valores nulos para `variable`:
+
+    Filas que agrega:
+      ── REPORTE DE NAs ──   (fila separadora visual)
+      N_TOTAL_FILAS          Filas totales en df_total
+      N_NAs_TOTAL            Nulos totales en la variable
+      PCT_NAs_TOTAL          Porcentaje global de nulos
+      N_NAs_<archivo>        Nulos por archivo (una fila por archivo)
+
+    Las columnas COD / LABEL / N_TOTAL / N_PERIODOS se usan para el texto;
+    las columnas de presencia binaria se rellenan con el conteo de NAs
+    del archivo correspondiente.
+    """
+    n_total = len(df)
+    n_nas   = df[variable].isna().sum()
+    pct_nas = round(n_nas / n_total * 100, 2) if n_total else 0.0
+
+    # Separador visual
+    sep = {
+        "COD"            : "── REPORTE DE NAs ──",
+        "LABEL"          : "",
+        "N_TOTAL"        : "",
+        "N_PERIODOS"     : "",
+        "CODIGO_CANONICO": "",
+        "CODIGO_ARMONIZADO": "",
+    }
+    for c in cols_archivos:
+        sep[c] = ""
+
+    # Filas de resumen global
+    def fila_global(etiqueta: str, valor) -> dict:
+        d = {"COD": etiqueta, "LABEL": str(valor),
+             "N_TOTAL": "", "N_PERIODOS": "",
+             "CODIGO_CANONICO": "", "CODIGO_ARMONIZADO": ""}
+        for c in cols_archivos:
+            d[c] = ""
+        return d
+
+    filas = [
+        sep,
+        fila_global("N_TOTAL_FILAS",  n_total),
+        fila_global("N_NAs_TOTAL",    n_nas),
+        fila_global("PCT_NAs_TOTAL",  f"{pct_nas} %"),
+    ]
+
+    # NAs por archivo fuente
+    for archivo in cols_archivos:
+        if archivo not in df["ARCHIVO_FUENTE"].unique():
+            n_nas_arch = 0
+        else:
+            mask       = df["ARCHIVO_FUENTE"] == archivo
+            n_nas_arch = df.loc[mask, variable].isna().sum()
+
+        d = {
+            "COD"            : f"N_NAs_{archivo}",
+            "LABEL"          : str(n_nas_arch),
+            "N_TOTAL"        : "",
+            "N_PERIODOS"     : "",
+            "CODIGO_CANONICO": "",
+            "CODIGO_ARMONIZADO": "",
+        }
+        for c in cols_archivos:
+            d[c] = ""
+        filas.append(d)
+
+    return pd.DataFrame(filas)
+
+
 def construir_hoja_variable(df: pd.DataFrame, variable: str) -> pd.DataFrame:
     """
-    Resumen de frecuencias y presencia por archivo para una variable categórica.
-
-    Columnas resultantes:
-      COD | LABEL | N_TOTAL | N_PERIODOS | [archivo_1 … archivo_n]
-          | CODIGO_CANONICO | CODIGO_ARMONIZADO
+    Resumen de frecuencias y presencia por archivo para una variable categórica,
+    seguido de un reporte de NAs al final de la hoja.
     """
     col_label = obtener_col_label(df, variable)
 
     temp = df[["ARCHIVO_FUENTE", variable]].copy()
-    temp[variable] = (
-        temp[variable]
-        .fillna("NO_INFORMA")
-        .str.strip()
-    )
+    # ⚠️  NO rellenamos NAs aquí — los contamos primero con el original
+    nas_df = construir_reporte_nas(df, variable, [])  # placeholder; se reemplaza abajo
 
-    # Etiqueta: columna dedicada o el propio código
+    temp[variable] = temp[variable].fillna("NO_INFORMA").str.strip()
+
     if col_label:
         temp["__LABEL__"] = df[col_label].fillna("NO_INFORMA").str.strip()
         label_map = (
             temp.groupby(variable)["__LABEL__"]
-            .agg(lambda s: s.value_counts().idxmax())   # etiqueta más frecuente
+            .agg(lambda s: s.value_counts().idxmax())
         )
     else:
         label_map = None
 
-    # N_TOTAL
     resumen = (
         temp.groupby(variable)
         .size()
         .reset_index(name="N_TOTAL")
     )
 
-    # N_PERIODOS
     n_periodos = (
         temp.groupby(variable)["ARCHIVO_FUENTE"]
         .nunique()
@@ -184,7 +251,6 @@ def construir_hoja_variable(df: pd.DataFrame, variable: str) -> pd.DataFrame:
     )
     resumen = resumen.merge(n_periodos, on=variable, how="left")
 
-    # Presencia binaria (0/1) por archivo
     presencia = (
         pd.crosstab(temp[variable], temp["ARCHIVO_FUENTE"])
         .gt(0)
@@ -193,7 +259,6 @@ def construir_hoja_variable(df: pd.DataFrame, variable: str) -> pd.DataFrame:
     )
     resumen = resumen.merge(presencia, on=variable, how="left")
 
-    # Renombrar y ordenar columnas explícitamente
     resumen = resumen.rename(columns={variable: "COD"})
     resumen["LABEL"] = (
         resumen["COD"].map(label_map) if label_map is not None
@@ -211,8 +276,16 @@ def construir_hoja_variable(df: pd.DataFrame, variable: str) -> pd.DataFrame:
     resumen["CODIGO_CANONICO"]   = ""
     resumen["CODIGO_ARMONIZADO"] = ""
 
-    return resumen
+    # ── Reporte de NAs ────────────────────────────────────────────────────────
+    df_nas = construir_reporte_nas(df, variable, cols_archivos)
 
+    # Aseguramos que las columnas del reporte coincidan con resumen
+    for col in resumen.columns:
+        if col not in df_nas.columns:
+            df_nas[col] = ""
+    df_nas = df_nas[resumen.columns]
+
+    return pd.concat([resumen, df_nas], ignore_index=True)
 
 def construir_resumen_relaciones(
     df: pd.DataFrame,

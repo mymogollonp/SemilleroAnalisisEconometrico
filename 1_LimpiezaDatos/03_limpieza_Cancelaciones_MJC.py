@@ -344,11 +344,9 @@ def armonizar_asignatura(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
     """
     Armonización de ASIGNATURA
     ─────────────────────────────
-    Unifica las dos variantes del convenio UPC en el valor canónico:
-      'UNIVERSIDAD POPULAR DEL CESAR'  →  'UNIVERSIDAD POPULAR DEL CESAR - UPC'
-
-    La columna ya fue normalizada (mayúsculas, sin tildes) antes de llamar
-    a esta función, por lo que la comparación es directa.
+    Unifica los nombres de dos asignaturas que tienen el mismo codigo pero salen con diferente nombre
+    ASPECTOS ARQUITECTONICOS EN EL DISENO SISMORESISTENTE":       "ASPECTOS ARQUITECTONICOS EN EL DISENO SISMORRESISTENTE",
+        "TALLER DE PROYECTOS PEDAGOGICOS I 2014710":   "TALLER DE PROYECTOS PEDAGOGICOS I",
     """
     if "ASIGNATURA" not in df.columns:
         log_lines.append(
