@@ -36,6 +36,13 @@ def limpiar_nombre_columna(col: str) -> str:
     return col
 
 
+def extraer_anio_semestre(stem: str):
+    match = re.search(r"(20\d{2}).*?([12])", stem)
+    if match:
+        return match.group(1), match.group(2)
+    return pd.NA, pd.NA
+
+
 def estandarizar_periodo(valor: str) -> str:
     if pd.isna(valor):
         return pd.NA
@@ -385,6 +392,10 @@ def convertir_decimal_a_coma(df: pd.DataFrame) -> pd.DataFrame:
 def limpiar_archivo(df, nombre_archivo):
 
     df = homologar_columnas(df)
+
+    _anio, _semestre = extraer_anio_semestre(Path(nombre_archivo).stem)
+    df.insert(0, "academic_semester", _semestre)
+    df.insert(0, "academic_anio", _anio)
 
     for _col_periodo in ("CONVOCATORIA", "APERTURA", "PERIODO_TERMINACION", "PER_NODO_GRADUACION"):
         if _col_periodo in df.columns:
