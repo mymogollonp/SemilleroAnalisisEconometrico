@@ -1,6 +1,6 @@
 #%%
 # =============================================================================
-# 04_Diccionario_Cancelaciones.py
+# 04_Verificar_Armonización_MJC.py
 # Semillero de Análisis Econométrico — UNAL FCE
 # Fecha: 2026-05-31
 #
@@ -42,9 +42,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from config import DIR_DATOS
 
-RUTA_INPUT  = DIR_DATOS / "DatosOriginales"  / "Cancelaciones"
+RUTA_INPUT  = DIR_DATOS / "DatosArmonizados"  / "Cancelaciones" / "2_DatosLimpios"
 RUTA_OUTPUT = DIR_DATOS / "DatosArmonizados" / "Cancelaciones"
-ARCHIVO_EXCEL = RUTA_OUTPUT / "Mapeo_Variables_Cancelaciones.xlsx"
+ARCHIVO_EXCEL = RUTA_OUTPUT / "Mapeo_Variables_Cancelaciones_limpio.xlsx"
 
 # =============================================================================
 # VARIABLES A INVENTARIAR
@@ -91,30 +91,38 @@ RELACIONES = {
     "COD_UAB_ASIGNATURA"     : "UAB_ASIGNATURA",
 }
 
-# Archivos que no usan la primera hoja
-HOJA_ESPECIAL = {
-    "Cancelaciones_2024-2S": "Sheet2",
-}
 
 # =============================================================================
 # FUNCIONES
 # =============================================================================
 
-def leer_archivos(ruta_input: Path, hoja_especial: dict) -> pd.DataFrame:
-    """Lee todos los .xlsx de ruta_input y los concatena en un solo DataFrame."""
-    archivos = sorted(ruta_input.glob("*.xlsx"))
+def leer_archivos(ruta_input: Path) -> pd.DataFrame:
+    archivos = sorted(ruta_input.glob("*.csv"))
+
     if not archivos:
-        raise FileNotFoundError(f"No se encontraron archivos en {ruta_input}")
+        raise FileNotFoundError(
+            f"No se encontraron archivos CSV en {ruta_input}"
+        )
 
     datos = []
+
     for ruta in archivos:
         nombre = ruta.stem
-        hoja   = hoja_especial.get(nombre, 0)
+
         try:
-            df = pd.read_excel(ruta, sheet_name=hoja, dtype=str)
+            df = pd.read_csv(
+                ruta,
+                dtype=str,
+                low_memory=False
+            )
+
             df["ARCHIVO_FUENTE"] = nombre
             datos.append(df)
-            print(f"  [OK]    {nombre}  ({len(df):,} filas)")
+
+            print(
+                f"  [OK]    {nombre} ({len(df):,} filas)"
+            )
+
         except Exception as e:
             print(f"  [ERROR] {nombre}: {e}")
 
@@ -319,7 +327,7 @@ def main() -> None:
     print("=" * 60)
     print("Leyendo archivos...")
     print("=" * 60)
-    df_total = leer_archivos(RUTA_INPUT, HOJA_ESPECIAL)
+    df_total = leer_archivos(RUTA_INPUT)
     print(f"\nTotal filas consolidadas: {len(df_total):,}")
 
     print("\n" + "=" * 60)

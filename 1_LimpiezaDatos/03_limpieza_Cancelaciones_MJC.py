@@ -12,9 +12,6 @@
 #   - Armoniza tipo_cancelacion → categorías canónicas
 #   - Armoniza cod_plan → formato estándar sin ceros ni guiones
 #   - Armoniza nivel_formacion si existe → colapsa variantes
-#   - Anonimiza CORREO → ID_UNAL usando LLAVE_ID_UNAL_FCE.csv
-#   - Elimina columnas PII (nombre, documento, fecha nacimiento, etc.)
-#   - Verifica ausencia de PII en el output final
 #   - Guarda un CSV limpio por semestre en DatosArmonizados/2_DatosLimpios/Cancelaciones/
 #   - Guarda el CSV consolidado limpio en DatosArmonizados/2_DatosLimpios/Cancelaciones/
 #         logs/limpieza_Cancelaciones_YYYY-MM-DD.txt
@@ -48,11 +45,9 @@ RUTA_INPUT  = DIR_DATOS / "DatosOriginales" / "Cancelaciones"
 
 # Output: CSV limpio consolidado
 RUTA_OUTPUT = DIR_DATOS / "DatosArmonizados" / "Cancelaciones"
-RUTA_OUTPUT_PERIODOS = RUTA_OUTPUT / "por_periodo"     # un CSV por período
+RUTA_OUTPUT_PERIODOS = RUTA_OUTPUT / "2_DatosLimpios"     # un CSV por período
 ARCHIVO_SALIDA = RUTA_OUTPUT / "Cancelaciones_limpio.csv"
 
-# Llave de anonimización (READ-ONLY — compartida con todos los módulos)
-LLAVE_PATH = DIR_DATOS / "DatosArmonizados" / "keys" / "LLAVE_ID_UNAL_FCE.csv"
 
 # Log
 RUTA_LOG    = DIR_CODE / "logs"
@@ -308,6 +303,219 @@ def normalizar_nombre(s) -> str:
     return s
 
 
+def armonizar_convenio_plan(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
+    """
+    Armonización de CONVENIO_PLAN
+    ─────────────────────────────
+    Unifica las dos variantes del convenio UPC en el valor canónico:
+      'UNIVERSIDAD POPULAR DEL CESAR'  →  'UNIVERSIDAD POPULAR DEL CESAR - UPC'
+
+    La columna ya fue normalizada (mayúsculas, sin tildes) antes de llamar
+    a esta función, por lo que la comparación es directa.
+    """
+    if "CONVENIO_PLAN" not in df.columns:
+        log_lines.append(
+            "  [AVISO] CONVENIO_PLAN no existe en el DataFrame — "
+            "armonización omitida."
+        )
+        return df
+
+    MAPA_CONVENIO = {
+        "UNIVERSIDAD POPULAR DEL CESAR":       "UNIVERSIDAD POPULAR DEL CESAR UPC",
+        "UNIVERSIDAD POPULAR DEL CESAR UPC": "UNIVERSIDAD POPULAR DEL CESAR UPC",
+        "UNIVERSIDAD POPULAR DEL CESAR - UPC": "UNIVERSIDAD POPULAR DEL CESAR UPC",
+    }
+
+    # Contar sólo las filas que realmente cambian de valor
+    mask_cambia = df["CONVENIO_PLAN"].isin(
+        [k for k, v in MAPA_CONVENIO.items() if k != v]
+    )
+    n_corregidos = int(mask_cambia.sum())
+
+    df["CONVENIO_PLAN"] = df["CONVENIO_PLAN"].replace(MAPA_CONVENIO)
+
+    log_lines.append(
+        f"  [CONVENIO_PLAN] Registros armonizados a 'UNIVERSIDAD POPULAR DEL CESAR - UPC': "
+        f"{n_corregidos:,}"
+    )
+    return df
+
+def armonizar_asignatura(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
+    """
+    Armonización de ASIGNATURA
+    ─────────────────────────────
+    Unifica las dos variantes del convenio UPC en el valor canónico:
+      'UNIVERSIDAD POPULAR DEL CESAR'  →  'UNIVERSIDAD POPULAR DEL CESAR - UPC'
+
+    La columna ya fue normalizada (mayúsculas, sin tildes) antes de llamar
+    a esta función, por lo que la comparación es directa.
+    """
+    if "ASIGNATURA" not in df.columns:
+        log_lines.append(
+            "  [AVISO] ASIGNATURA no existe en el DataFrame — "
+            "armonización omitida."
+        )
+        return df
+
+    MAPA_ASIGNATURA = {
+        "ASPECTOS ARQUITECTONICOS EN EL DISENO SISMORESISTENTE":       "ASPECTOS ARQUITECTONICOS EN EL DISENO SISMORRESISTENTE",
+        "TALLER DE PROYECTOS PEDAGOGICOS I 2014710":   "TALLER DE PROYECTOS PEDAGOGICOS I",
+    }
+
+    # Contar sólo las filas que realmente cambian de valor
+    mask_cambia = df["ASIGNATURA"].isin(
+        [k for k, v in MAPA_ASIGNATURA.items() if k != v]
+    )
+    n_corregidos = int(mask_cambia.sum())
+
+    df["ASIGNATURA"] = df["ASIGNATURA"].replace(MAPA_ASIGNATURA)
+
+    log_lines.append(
+    f"  [ASIGNATURA] Registros armonizados: {n_corregidos:,}"
+    )
+
+    return df
+
+
+def limpiar_documento(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
+    """
+    Limpieza de DOCUMENTO (antes del renombrado a NUMERO_DOCUMENTO)
+    ────────────────────────────────────────────────────────────────
+    Elimina ceros a la izquierda en la variable DOCUMENTO. La variable se
+    mantiene como texto para preservar identificadores con caracteres especiales
+    o longitudes significativas. Si al retirar los ceros el valor queda vacío
+    (p. ej. el documento era "000"), se reemplaza por NaN.
+
+    Nota: se aplica sobre la columna 'DOCUMENTO' (nombre original en la fuente),
+    antes del paso de renombrado a 'NUMERO_DOCUMENTO'.
+    """
+    col = "DOCUMENTO" if "DOCUMENTO" in df.columns else (
+        "NUMERO_DOCUMENTO" if "NUMERO_DOCUMENTO" in df.columns else None
+    )
+
+    if col is None:
+        log_lines.append(
+            "  [AVISO] Columna DOCUMENTO / NUMERO_DOCUMENTO no encontrada — "
+            "limpieza de ceros omitida."
+        )
+        return df
+
+    original = df[col].astype(str).str.strip()
+
+    # lstrip("0") sobre valores no-nulos; conserva "0" puro como NaN
+    def _lstrip_ceros(val: str) -> object:
+        low = val.lower()
+        if low in ("nan", "none", ""):
+            return np.nan
+        resultado = val.lstrip("0")
+        return resultado if resultado != "" else np.nan
+
+    limpio = original.apply(_lstrip_ceros)
+
+    # Contar filas donde el valor cambió efectivamente
+    n_modificados = int((original != limpio.astype(str)).sum())
+    # Ajuste: comparar solo sobre filas no-nulas para evitar falsos positivos
+    mask_no_nulo  = original.str.lower().isin(["nan", "none", ""]) == False
+    n_modificados = int(
+        (original[mask_no_nulo] != limpio[mask_no_nulo].astype(str)).sum()
+    )
+
+    df[col] = limpio
+
+    log_lines.append(
+        f"  [DOCUMENTO] Registros con ceros a la izquierda eliminados: "
+        f"{n_modificados:,}"
+    )
+    return df
+
+
+def corregir_subacceso(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
+    """
+    Corrección de SUBACCESO según COD_SUBACCESO
+    ─────────────────────────────────────────────
+    Sobrescribe SUBACCESO con el valor canónico para los códigos PEAMA y PAES
+    listados en el diccionario. Se aplica después de la conversión numérica de
+    COD_SUBACCESO, por lo que la comparación usa el tipo float/int resultante
+    del pd.to_numeric(..., errors='coerce').
+
+    Códigos incluidos:
+      4  → PAES - MUNICIPIO
+     18  → PEAMA - ORINOQUIA - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA
+     19  → PEAMA - AMAZONIA  - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA
+     20  → PEAMA - CARIBE    - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA
+     23  → PEAMA - TUMACO    - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA
+     26  → PEAMA - BOGOTA-SUMAPAZ - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA
+    """
+    if "SUBACCESO" not in df.columns or "COD_SUBACCESO" not in df.columns:
+        log_lines.append(
+            "  [AVISO] SUBACCESO o COD_SUBACCESO no encontrados — "
+            "corrección omitida."
+        )
+        return df
+
+    MAPA_SUBACCESO = {
+        4:  "PAES - MUNICIPIO",
+        18: "PEAMA - ORINOQUIA - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA",
+        19: "PEAMA - AMAZONIA - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA",
+        20: "PEAMA - CARIBE - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA",
+        23: "PEAMA - TUMACO - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA",
+        26: "PEAMA - BOGOTA-SUMAPAZ - PROGRAMA ESPECIAL DE ADMISION Y MOVILIDAD ACADEMICA",
+    }
+
+    # COD_SUBACCESO ya fue convertido a numérico; comparamos con int via map
+    # Usamos .astype("Int64") para manejar NaN sin errores
+    cod_int = pd.to_numeric(df["COD_SUBACCESO"], errors="coerce")
+    n_corregidos = 0
+
+    for codigo, valor_canonico in MAPA_SUBACCESO.items():
+        mask = cod_int == codigo
+        n_corregidos += int(mask.sum())
+        df.loc[mask, "SUBACCESO"] = valor_canonico
+
+    log_lines.append(
+        f"  [SUBACCESO] Registros sobrescritos con valor canónico "
+        f"(códigos PEAMA/PAES): {n_corregidos:,}"
+    )
+    return df
+
+
+def corregir_facultad_asignatura(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
+    """
+    Corrección de FACULTAD_ASIGNATURA para COD_FACULTAD_ASIGNATURA = 1004
+    ────────────────────────────────────────────────────────────────────────
+    Armoniza las dos variantes del nombre de la Escuela de Pregrado La Paz:
+      'ESCUELA DE PREGRADO DE LA PAZ'  →  'ESCUELA DE PREGRADO LA PAZ'
+
+    La corrección es estrictamente acotada a registros con
+    COD_FACULTAD_ASIGNATURA == 1004 para no afectar otros registros.
+    """
+    if "FACULTAD_ASIGNATURA" not in df.columns or \
+       "COD_FACULTAD_ASIGNATURA" not in df.columns:
+        log_lines.append(
+            "  [AVISO] FACULTAD_ASIGNATURA o COD_FACULTAD_ASIGNATURA no encontrados — "
+            "corrección omitida."
+        )
+        return df
+
+    VARIANTES_1004 = {"ESCUELA DE PREGRADO LA PAZ", "ESCUELA DE PREGRADO DE LA PAZ"}
+    VALOR_CANONICO = "ESCUELA DE PREGRADO LA PAZ"
+
+    # COD_FACULTAD_ASIGNATURA ya es numérico; comparamos como string para
+    # tolerar tanto float (1004.0) como int (1004)
+    mask_cod  = df["COD_FACULTAD_ASIGNATURA"].astype(str).str.split(".").str[0] == "1004"
+    mask_var  = df["FACULTAD_ASIGNATURA"].isin(VARIANTES_1004)
+    mask_cambia = mask_cod & mask_var & (df["FACULTAD_ASIGNATURA"] != VALOR_CANONICO)
+    n_corregidos = int(mask_cambia.sum())
+
+    df.loc[mask_cod & mask_var, "FACULTAD_ASIGNATURA"] = VALOR_CANONICO
+
+    log_lines.append(
+        f"  [FACULTAD_ASIGNATURA] Registros armonizados a "
+        f"'ESCUELA DE PREGRADO LA PAZ' (cod 1004): {n_corregidos:,}"
+    )
+    return df
+
+
 def limpiar_cancelaciones(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
     """
     Aplica las transformaciones de limpieza al DataFrame apilado.
@@ -321,6 +529,11 @@ def limpiar_cancelaciones(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
             validar_periodo(subset, arch, log_lines)
     else:
         log_lines.append("  [ERROR] Columna PERIODO no encontrada.")
+
+    # 5d-pre. Limpieza de DOCUMENTO (antes del renombrado canónico)
+    #   Se ejecuta aquí porque la columna aún se llama 'DOCUMENTO' en la fuente.
+    log_lines.append("\n--- Limpieza de ceros en DOCUMENTO ---")
+    df = limpiar_documento(df, log_lines)
 
     # 5d. Armonizar nombres canónicos de variables
     log_lines.append("\n--- Armonización de nombres canónicos ---")
@@ -347,7 +560,7 @@ def limpiar_cancelaciones(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
         "NOMBRE_COMPLETO", "LOGIN_USUARIO_ESTUDIANTE", "PLAN", "DESC_PROG_CURRICULAR",
         "ASIGNATURA", "FACULTAD_ASIGNATURA", "UAB_ASIGNATURA", "TIPO_CANCELACION",
         "CAUSA_ANULA", "USUARIO_CANCELACION", "NOTA_ALFABETICA", "ACCESO",
-        "SUBACCESO", "FACULTAD", "SEDE", "TIPO_NIVEL", "TIPO_USUARIO", "NODO_INICIO"
+        "SUBACCESO", "FACULTAD", "SEDE", "TIPO_NIVEL", "TIPO_USUARIO", "NODO_INICIO", "CONVENIO_PLAN"
     ]
 
     for col in COL_STRINGS:
@@ -400,10 +613,16 @@ def limpiar_cancelaciones(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
         else:
             log_lines.append("  [OK] NOTA_NUMERICA en rango [0, 5].")
 
-    # 5h. Anonimización: CORREO → ID_UNAL y eliminación de PII
-    log_lines.append("\n--- Anonimización y eliminación de PII ---")
-    df = anonimizar_correo(df, log_lines)
-    df = eliminar_pii(df, log_lines)
+    # 5h-1. Armonizaciones de categorías
+    #   Orden: primero las que dependen de columnas numéricas ya convertidas
+    #   (SUBACCESO depende de COD_SUBACCESO numérico, FACULTAD_ASIGNATURA de
+    #   COD_FACULTAD_ASIGNATURA numérico). CONVENIO_PLAN se aplica después de
+    #   la normalización de strings (paso 5e).
+    log_lines.append("\n--- Armonizaciones de categorías ---")
+    df = armonizar_convenio_plan(df, log_lines)
+    df = armonizar_asignatura(df, log_lines)
+    df = corregir_subacceso(df, log_lines)
+    df = corregir_facultad_asignatura(df, log_lines)
 
     return df   # BUG FIX: faltaba el return
 
@@ -446,98 +665,10 @@ def reportar_vars_intermitentes(df: pd.DataFrame, log_lines: list) -> None:
 
 
 # =============================================================================
-# 6b. ANONIMIZACIÓN
-# =============================================================================
-
-# Carga diferida para evitar error si la llave no existe en entornos de prueba
-def _cargar_mapa_correo() -> dict:
-    if not LLAVE_PATH.exists():
-        print(f"  [ADVERTENCIA] Llave de anonimización no encontrada: {LLAVE_PATH}")
-        return {}
-    llave = pd.read_csv(LLAVE_PATH, dtype=str)
-    llave["correo"] = llave["correo"].str.lower().str.strip()
-    return llave.set_index("correo")["id_unal"].to_dict()
-
-
-MAPA_CORREO_ID: dict = _cargar_mapa_correo()
-
-
-# PII que debe eliminarse del output final
-COLUMNAS_PII = [
-    "NOMBRE_COMPLETO",
-    "NUMERO_DOCUMENTO",
-    "TIPO_DOCUMENTO",
-    "FECHA_NACIMIENTO",
-    "SEXO",
-    "LOGIN_USUARIO_ESTUDIANTE",
-    "HIST_ACAD",
-]
-
-
-def anonimizar_correo(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
-    """
-    Reemplaza CORREO por ID_UNAL usando la llave maestra.
-    - Correos sin match quedan con ID_UNAL = NaN y se reportan en el log.
-    - Elimina la columna CORREO del DataFrame.
-    """
-    if "CORREO" not in df.columns:
-        log_lines.append("  [AVISO] Columna CORREO no encontrada — anonimización omitida.")
-        return df
-
-    df = df.copy()
-    df["CORREO"] = df["CORREO"].str.lower().str.strip()
-
-    if not MAPA_CORREO_ID:
-        log_lines.append(
-            "  [ERROR] Mapa de anonimización vacío — "
-            "se elimina CORREO pero NO se crea ID_UNAL."
-        )
-        return df.drop(columns=["CORREO"])
-
-    df["ID_UNAL"] = df["CORREO"].map(MAPA_CORREO_ID)
-
-    sin_match = df.loc[df["ID_UNAL"].isna() & df["CORREO"].notna(), "CORREO"]
-    n_sin = sin_match.nunique()
-    if n_sin > 0:
-        ejemplos = sorted(sin_match.unique())[:5]
-        log_lines.append(
-            f"  [ADVERTENCIA] {n_sin:,} correos únicos sin match en la llave. "
-            f"Ejemplos: {ejemplos}"
-        )
-    else:
-        log_lines.append(
-            f"  [OK] Todos los correos mapeados a ID_UNAL "
-            f"({df['ID_UNAL'].notna().sum():,} filas)."
-        )
-
-    return df.drop(columns=["CORREO"])
-
-
-def eliminar_pii(df: pd.DataFrame, log_lines: list) -> pd.DataFrame:
-    """Elimina columnas PII del DataFrame."""
-    cols_a_eliminar = [c for c in COLUMNAS_PII if c in df.columns]
-    if cols_a_eliminar:
-        log_lines.append(f"  PII eliminadas: {cols_a_eliminar}")
-    return df.drop(columns=cols_a_eliminar)
-
-
-def verificar_ausencia_pii(df: pd.DataFrame, log_lines: list) -> None:
-    """Alerta si alguna columna PII sobrevivió al pipeline."""
-    pii_restantes = [c for c in COLUMNAS_PII + ["CORREO"] if c in df.columns]
-    if pii_restantes:
-        log_lines.append(
-            f"\n  [ERROR] Columnas PII presentes en el output final: {pii_restantes}"
-        )
-    else:
-        log_lines.append("  [OK] Sin columnas PII en el output final.")
-
-
-# =============================================================================
 # 7. SELECCIÓN DE COLUMNAS FINALES
 # =============================================================================
 
-VARS_CANONICAS = [
-    "ID_UNAL",                    # identificador anonimizado — reemplaza CORREO
+VARS_CANONICAS = [       
     "SEDE",
     "COD_FACULTAD",
     "FACULTAD",
@@ -547,6 +678,11 @@ VARS_CANONICAS = [
     "DESC_PROG_CURRICULAR",
     "CONVENIO_PLAN",
     "TIPO_NIVEL",
+    "HIST_ACAD",
+    "DOCUMENTO",
+    "NOMBRES_APELLIDOS",
+    "CORREO_INSTITUCIONAL",
+    "LOGIN_USUARIO_ESTUDIANTE",
     "ADMISION",
     "CONVOCATORIA",
     "APERTURA",
@@ -824,23 +960,6 @@ METADATOS_VARIABLES = [
      "Puntaje con que el estudiante fue admitido al programa"),
     ("ARCHIVO_FUENTE",          "string",    "Cancelaciones_YYYY-NS",
      "Nombre del archivo Excel original del que proviene la fila"),
-    # ── Variables PII eliminadas del output — documentadas para trazabilidad ──
-    ("CORREO",                  "string",    "ELIMINADA — PII",
-     "Correo institucional original; reemplazado por ID_UNAL mediante anonimización. No aparece en el output final"),
-    ("NOMBRE_COMPLETO",         "string",    "ELIMINADA — PII",
-     "Nombres y apellidos del estudiante; eliminado del output final por ser PII"),
-    ("NUMERO_DOCUMENTO",        "string",    "ELIMINADA — PII",
-     "Número de documento de identidad; eliminado del output final por ser PII"),
-    ("TIPO_DOCUMENTO",          "string",    "ELIMINADA — PII",
-     "Tipo de documento de identidad; eliminado del output final por ser PII"),
-    ("FECHA_NACIMIENTO",        "string",    "ELIMINADA — PII",
-     "Fecha de nacimiento; eliminada del output final por ser PII"),
-    ("SEXO",                    "string",    "ELIMINADA — PII",
-     "Sexo del estudiante; eliminado del output final por ser PII"),
-    ("HIST_ACAD",               "numérico",  "ELIMINADA — PII",
-     "Historia académica SIA; eliminada del output final por ser PII (identificador interno nominal)"),
-    ("LOGIN_USUARIO_ESTUDIANTE","string",    "ELIMINADA — PII",
-     "Usuario del sistema SIA; eliminado del output final por ser PII"),
 ]
 
 
@@ -983,10 +1102,6 @@ def main():
     # 8g. Selección de columnas canónicas
     log_lines.append("\n[6] SELECCIÓN DE COLUMNAS FINALES")
     df_final = seleccionar_columnas(df, log_lines)
-
-    # 8g2. Verificar que no quede PII en el output
-    log_lines.append("\n[6b] VERIFICACIÓN DE AUSENCIA DE PII")
-    verificar_ausencia_pii(df_final, log_lines)
 
     # 8h. Diccionario de asignaturas
     log_lines.append("\n[7] DICCIONARIO DE ASIGNATURAS")
