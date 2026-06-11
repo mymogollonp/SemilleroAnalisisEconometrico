@@ -226,7 +226,7 @@ es_graduado  = merged["graduado"] == 1
 es_solo_ret  = (merged["retirado"] == 1) & (merged["graduado"] == 0)
 
 merged["porcentaje_avance"] = pd.NA
-merged.loc[es_graduado, "porcentaje_avance"] = "100"
+merged.loc[es_graduado, "porcentaje_avance"] = pd.NA
 merged.loc[es_solo_ret, "porcentaje_avance"] = merged.loc[es_solo_ret, "PORCENTAJE_AVANCE"]
 merged = merged.drop(columns=["PORCENTAJE_AVANCE"])
 
