@@ -67,6 +67,7 @@ OUTPUT_COLS = [
     "promedio_simple_periodo",
     "promedio_simple_acumulado",
     "papa_periodo",
+    "papa_acumulado",
 ]
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -99,14 +100,18 @@ cred_cursados = (
     .rename("creditos_cursados_periodo")
 )
 
-# -- 2b. Créditos aprobados / reprobados (solo filas con nota) --
-# Rows with NaN grade produce 0 via .where(), so they're excluded naturally.
-df["_cred_aprobados"] = df["CREDITOS_ASIGNATURA"].where(
-    df["CALIFICACION_NUMERICA"] >= 3.0, other=0
-)
-df["_cred_reprobados"] = df["CREDITOS_ASIGNATURA"].where(
-    df["CALIFICACION_NUMERICA"] < 3.0, other=0
-)
+# -- 2b. Créditos aprobados / reprobados (nota numérica, con fallback a alfabética) --
+df["CALIFICACION_ALFABETICA"] = df["CALIFICACION_ALFABETICA"].astype(str).str.strip().replace({"nan": None, "": None})
+
+es_aprobado_num = df["CALIFICACION_NUMERICA"] >= 3.0
+es_reprobado_num = df["CALIFICACION_NUMERICA"] < 3.0
+sin_nota_numerica = df["CALIFICACION_NUMERICA"].isna()
+
+es_aprobado_alfa = sin_nota_numerica & df["CALIFICACION_ALFABETICA"].isin(["AP", "AS"])
+es_reprobado_alfa = sin_nota_numerica & (df["CALIFICACION_ALFABETICA"] == "RE")
+
+df["_cred_aprobados"] = df["CREDITOS_ASIGNATURA"].where(es_aprobado_num | es_aprobado_alfa, other=0)
+df["_cred_reprobados"] = df["CREDITOS_ASIGNATURA"].where(es_reprobado_num | es_reprobado_alfa, other=0)
 
 cred_aprobados = (
     df.groupby(KEYS, sort=False)["_cred_aprobados"]
@@ -135,6 +140,12 @@ df["_cred_con_nota"] = df["CREDITOS_ASIGNATURA"].where(
 grp = df.groupby(KEYS, sort=False)
 papa = (grp["_nota_x_cred"].sum() / grp["_cred_con_nota"].sum()).rename("papa_periodo")
 
+# Numerador y denominador del PAPA por período (para acumular correctamente por créditos)
+papa_componentes = grp.agg(
+    _nota_x_cred_periodo=("_nota_x_cred", "sum"),
+    _cred_con_nota_periodo=("_cred_con_nota", "sum"),
+)
+
 # -- 2e. Créditos por tipología (todas las filas, pivot) --
 tipologia_pivot = df.pivot_table(
     index=KEYS,
@@ -162,6 +173,7 @@ base = (
     .join(cred_reprobados)
     .join(prom_simple)
     .join(papa)
+    .join(papa_componentes)
     .join(tipologia_pivot)
     .reset_index()
 )
@@ -182,6 +194,12 @@ base["creditos_cursados_acumulados"] = panel["creditos_cursados_periodo"].transf
 base["promedio_simple_acumulado"] = panel["promedio_simple_periodo"].transform(
     lambda s: s.expanding().mean()
 )
+
+# papa_acumulado: promedio ponderado por créditos acumulado real
+# (acumula numerador y denominador por separado para ponderar correctamente)
+base["_nota_x_cred_acum"] = panel["_nota_x_cred_periodo"].transform(lambda s: s.expanding().sum())
+base["_cred_con_nota_acum"] = panel["_cred_con_nota_periodo"].transform(lambda s: s.expanding().sum())
+base["papa_acumulado"] = base["_nota_x_cred_acum"] / base["_cred_con_nota_acum"]
 
 # ---------------------------------------------------------------------------
 # 5. COLUMNAS DE IDENTIFICACIÓN
