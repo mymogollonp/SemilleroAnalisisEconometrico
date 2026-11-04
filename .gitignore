@@ -1,18 +1,44 @@
-# Build and Release Folders
-bin-debug/
-bin-release/
-[Oo]bj/
-[Bb]in/
+# Semillero Microeconometría — .gitignore
+# This repo holds CODE AND DOCUMENTATION ONLY. Data lives in Google Drive.
+# See requirements-spec.md Rule 4 and logs/INCIDENTE_llave_id_unal_en_git.md
 
-# Other files and folders
-.settings/
+# ── Data: never commit ──
+*.csv
+*.tsv
+*.xlsx
+*.xls
+*.xlsm
+*.dta
+*.sav
+*.parquet
+*.feather
+*.rds
+*.RData
+*.rda
+*.zip
+*.rar
+*.7z
+*.gz
 
-# Executables
-*.swf
-*.air
-*.ipa
-*.apk
+# ── Documents and binaries (go in Drive) ──
+*.pdf
+*.docx
+*.doc
+*.pptx
 
-# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
-# should NOT be excluded as they contain compiler settings and other important
-# information for Eclipse / Flash Builder.
+# ── Python / R / Jupyter clutter ──
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.Rhistory
+.Rproj.user/
+.venv/
+venv/
+
+# ── Secrets ──
+.env
+
+# ── OS / editor ──
+.DS_Store
+Thumbs.db
+desktop.ini
