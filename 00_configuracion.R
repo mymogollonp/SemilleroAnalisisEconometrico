@@ -5,17 +5,10 @@
   
 usuario <- Sys.info()[["user"]]
 
-if (usuario == "NicolasC") {
+ if (usuario == "JeronimoJ") {
   dir_datos <- "C:/TuRuta/SemilleroAnalisisEconometrico"
   dir_code  <- "C:/TuRuta/code/SemilleroAnalisisEconometrico"
   
-} else if (usuario == "JeronimoJ") {
-  dir_datos <- "C:/TuRuta/SemilleroAnalisisEconometrico"
-  dir_code  <- "C:/TuRuta/code/SemilleroAnalisisEconometrico"
-  
-} else if (usuario == "majoc") {
-  dir_datos <- "G:/.shortcut-targets-by-id/10I6zKIZovl02Q4Q7DklodKBGjHWu6boA/SemilleroAnalisisEconometrico/DatosOriginales"
-  dir_code  <- "C:/SemilleroAnalisisEconometrico"
 
 } else if (usuario == "nicoj") {
   dir_datos <- "C:/Users/nicoj/Desktop/semillerop/datos"
