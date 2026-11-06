@@ -33,9 +33,9 @@ Documentar **todos los cambios en planes de estudio** de la universidad observab
 - `[x]` Firmar el acuerdo de confidencialidad; pedir acceso a GitHub y Drive
 - `[x]` Clonar el repo, crear la rama `ra/jmoreno` y el archivo `00_config`; primer commit y push
 - `[x]` Leer la [Introducción](../INTRODUCCION_2026-2S.md) y la [Guía de RAs](../README.md)
-- `[-]` Leer **Arteaga (2018)**, *J. Public Economics* 157: 212–225, y resumirlo en `Literatura/notas_lectura.md`: reforma, datos, método, resultados
+- `[x]` Leer **Arteaga (2018)**, *J. Public Economics* 157: 212–225, y resumirlo en `Literatura/notas_lectura.md`: reforma, datos, método, resultados
 - `[ ]` Revisar con Monica el documento de proyecto ya formulado (revisión de literatura de la convocatoria) y anotar preguntas
-- `[-]` Explorar `BASE_MATRICULADOS.csv`: N por período; valores de `cod_plan`, `cod_programa`, `facultad` y `tipo_nivel`
+- `[x]` Explorar `BASE_MATRICULADOS.csv`: N por período; valores de `cod_plan`, `cod_programa`, `facultad` y `tipo_nivel`
 
 ## Semana 2 (9 – 13 nov) — Identificar cambios en los datos
 
@@ -83,7 +83,7 @@ Documentar **todos los cambios en planes de estudio** de la universidad observab
 
 | Semana | Avances | Problemas o bloqueos | Horas |
 |---|---|---|---|
-| S1 | | | |
+| S1 |Clonación repo-rama ra/jmoreno-00_conf, resumen Arteaga(2017), exploración matriculados|Ninguno|9|
 | S2 | | | |
 | S3 | | | |
 | S4 | | | |
