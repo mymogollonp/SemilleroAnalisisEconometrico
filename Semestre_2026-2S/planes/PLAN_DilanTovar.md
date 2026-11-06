@@ -31,11 +31,11 @@ La política cambió el orden de la admisión: antes se escogía el programa y l
 
 ## Semana 1 (3 – 6 nov) — Arranque
 
-- `[ ]` Firmar el acuerdo de confidencialidad; pedir acceso a GitHub y Drive
-- `[ ]` Clonar el repo, crear la rama `ra/dtovar` y el archivo `00_config`; primer commit y push
-- `[ ]` Leer la [Introducción](../INTRODUCCION_2026-2S.md) y la [Guía de RAs](../README.md)
-- `[ ]` Leer el artículo del profesor Hernando Bayona sobre el cambio en la admisión (pedirlo a Monica) y resumirlo en `Literatura/notas_lectura.md`
-- `[ ]` Reunión de 30 min con Julian para **acordar la división del trabajo** y el período de corte antes/después
+- `[X]` Firmar el acuerdo de confidencialidad; pedir acceso a GitHub y Drive
+- `[X]` Clonar el repo, crear la rama `ra/dtovar` y el archivo `00_config`; primer commit y push
+- `[X]` Leer la [Introducción](../INTRODUCCION_2026-2S.md) y la [Guía de RAs](../README.md)
+- `[X]` Leer el artículo del profesor Hernando Bayona sobre el cambio en la admisión (pedirlo a Monica) y resumirlo en `Literatura/notas_lectura.md`
+- `[?]` Reunión de 30 min con Julian para **acordar la división del trabajo** y el período de corte antes/después
 
 ## Semana 2 (9 – 13 nov) — Normativa: búsqueda y diseño de la base
 
