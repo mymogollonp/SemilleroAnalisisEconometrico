@@ -41,13 +41,13 @@ Build a clean, harmonized, and anonymized working database from the original UNA
 
 ## Rule 2 — Never Delete Code
 
-> **No script or code file is ever deleted.**
+> **No do-file, script, or code file is ever deleted.**
 
-- All scripts (`.do`, `.R`, `.py`), notebooks, and code files are **permanent**.
+- All do-files (`.do`), scripts, notebooks, and code files are **permanent**.
 - If a program becomes obsolete or is superseded by an improved version, keep the original and create the new one with a different name or incremented version number.
-  - Example: `07_anonimizar_matriculados_v1.R` → `07_anonimizar_matriculados_v2.R` (do not delete v1).
+  - Example: `07_anonimizar_matriculados_v1.do` → `07_anonimizar_matriculados_v2.do` (do not delete v1).
 - Fixes are made by creating new files, not by overwriting previous ones without a backup.
-- This rule applies regardless of language: Stata, R, Python, Jupyter notebooks, or any other analysis code.
+- This rule applies to all code: Stata do-files, R scripts, Python scripts, Jupyter notebooks, and any other analysis code.
 
 ---
 
@@ -55,7 +55,7 @@ Build a clean, harmonized, and anonymized working database from the original UNA
 
 > **All project work happens inside the two root directories defined above.**
 
-- All paths in code must use the variables defined in the project configuration file (`00_configuracion.do` for Stata, `00_config.R` for R, `00_config.py` for Python) for portability across machines. Never hardcode absolute paths outside of these configuration files.
+- All paths in code must use the global macros defined in `00_configuracion.do` for portability across machines. Never hardcode absolute paths outside of `00_configuracion.do`.
 - Never read or write files outside these directories without documenting the exception in the session log.
 - Outputs (tables, figures, logs) are saved inside designated subdirectories:
   - `logs/` — session logs and inventario logs
@@ -84,20 +84,17 @@ Build a clean, harmonized, and anonymized working database from the original UNA
 - All shared or published datasets use `id_unal` (anonymous, randomly permuted, format `UNAL000001`).
 - The `id_unal` identifier is generated fresh for this project using a documented random permutation with seed `20260223`. It is not derived from or linked to identifiers in inherited datasets from prior projects.
 - The crosswalk `id_unal ↔ real identifier` is stored only in `DatosArmonizados/keys/LLAVE_ID_UNAL_FCE.csv` and is never shared outside PI authorization.
-- The anonymization seed must be documented explicitly in the script that generates it.
+- The anonymization seed must be documented explicitly in the do-file that generates it.
 
 ---
 
 ## Rule 6 — CSV-Only Outputs
 
-> **All output data files are saved in CSV format. No `.dta` or `.xlsx` output files are generated.**
+> **All output data files are saved in CSV format. No `.dta` files are generated.**
 
-- Every script that writes data must produce CSV. Language-specific equivalents:
-  - Stata: `export delimited using "...", replace`
-  - R: `write.csv(df, "...", row.names = FALSE)` or `readr::write_csv(df, "...")`
-  - Python: `df.to_csv("...", index=False)`
-- This applies to all intermediate and final outputs: anonymized files, cleaned files, panel datasets, samples, and crosswalks.
-- Reading `.xlsx` originals is allowed. Writing `.xlsx` is not.
+- Every do-file that writes data uses `export delimited using "...", replace` (Stata) or equivalent.
+- This applies to all intermediate and final outputs: anonimized files, cleaned files, panel datasets, samples, and crosswalks.
+- Reading `.xlsx` originals is allowed (via `import excel`). Writing `.xlsx` is not.
 
 ---
 
@@ -115,50 +112,22 @@ Build a clean, harmonized, and anonymized working database from the original UNA
 
 > **The `DatosOriginales/` folder is read-only.**
 
-- No script (in any language) or manual action may create, edit, rename, or delete files inside `DatosOriginales/`.
-- Scripts only **read** from `DatosOriginales/` — they never write to it.
+- No do-file, script, or manual action may create, edit, rename, or delete files inside `DatosOriginales/`.
+- Do-files only **read** from `DatosOriginales/` — they never write to it.
 - All outputs (anonymized, cleaned, processed) are saved in `DatosArmonizados/` or its subdirectories.
 - If an original file appears incorrect or incomplete, document it in the weekly report and notify the PI/CoPI. Do not modify the file.
 
 ---
 
-## Rule 9 — AI Agents Stay in the Code Folder
-
-> **AI agents (Claude Code, Copilot, Cursor, etc.) work only inside the folder that holds this project's code.**
-
-- Agents must never find, search, list, or explore any other folder on the computer. That includes the Google Drive data folders and the user's personal folders.
-- If a task seems to need anything outside the code folder, the agent stops and asks.
-- Agent-specific rules are in [CLAUDE.md](CLAUDE.md).
-
----
-
-## Rule 10 — Never Read Data Without Manual Permission
-
-> **No AI agent reads project data unless the user grants manual, explicit permission for that specific task.**
-
-- "Reading data" includes opening files, printing headers or first rows, and running scripts whose output shows data or summary statistics.
-- A permission covers only the task it was given for. It does not carry over to other tasks or sessions.
-
----
-
-## Rule 11 — Never Upload Data to AI Services
-
-> **No team member uploads project data to any AI agent, chatbot, or agentic platform** (ChatGPT, Claude, Gemini, Copilot, NotebookLM, etc.).
-
-- This covers full datasets, extracts, sample rows, microdata tables, and screenshots of data.
-- AI tools may be used with code and with public documents (regulations, papers) only.
-
----
-
 ## Inventario Requirements
 
-Each inventario script (`02_inventario_*` — Stata `.do`, R `.R`, or Python `.py`) must produce a log that documents:
+Each inventario do-file (`02_inventario_*.do`) must produce a log that documents:
 
 1. **Total number of files** found in the source folder and whether it matches the expected count.
 2. **Variable list** for each file: Stata name, type, and Excel header label.
 3. **Missing values** per variable.
 4. **Variable consistency across years**: which variables appear in all files vs. only some; auto-detected differences flagged with `⚠`.
-5. **Unique observation key**: which variable(s) uniquely identify a row. The Stata reference script uses `capture isid` to auto-detect single-variable keys; R/Python equivalents should test uniqueness with `n_distinct()` / `df.nunique()`. If no single variable is unique, the RA must identify the composite key manually and document it.
+5. **Unique observation key**: which variable(s) uniquely identify a row. The do-file uses `capture isid` to auto-detect single-variable keys; if none, the RA must identify the composite key manually and document it.
 6. **Dataset-specific checks**:
    - Cursadas: numeric variables outside the 0–5 grade scale flagged with `⚠`.
    - Cancelaciones / Egresados: string examples shown for date/period variables to identify format.
@@ -172,10 +141,9 @@ The RA must document all findings in their weekly task report (`RAtaskreport/sem
 
 | File type | Convention | Example |
 |---|---|---|
-| Path-config script | `00_configuracion.do` / `00_config.R` / `00_config.py` | `00_config.R` |
-| Main script (any language) | `NN_descripcion.[do\|R\|py]` | `07_anonimizar_matriculados.R` |
-| Versioned script | `NN_descripcion_vK.[do\|R\|py]` | `07_anonimizar_matriculados_v2.py` |
-| Exploration script | `EX_MODULO_INICIALES.[do\|R\|py]` | `EX_Cursadas_JJ.R` |
+| Path-config do-file | `00_configuracion.do` | `00_configuracion.do` |
+| Main do-file | `NN_descripcion.do` | `07_anonimizar_matriculados.do` |
+| Versioned do-file | `NN_descripcion_vK.do` | `07_anonimizar_matriculados_v2.do` |
 | Original data | `NOMBRE_ORIGINAL.ext` | `Matriculados_2023-2S.xlsx` |
 | Anonymized output | `NOMBRE_anon.csv` | `Matriculados_2023-2S_anon.csv` |
 | Processed data | `NOMBRE_descriptor.csv` | `BASE_FCE_ARMONIZADA.csv` |
@@ -250,23 +218,23 @@ C:\Drive2023\UNAL_Docente\SemilleroAnalisisEconometrico\   ← Google Drive (dat
 
 ---
 
-## Script Numbering Convention
+## Do-File Numbering Convention
 
-Scripts within the same processing phase share the same two-digit prefix. The extension (`.do`, `.R`, `.py`) depends on the language chosen by the RA.
+Do-files within the same processing phase share the same two-digit prefix:
 
 | Prefix | Phase | Description |
 |---|---|---|
 | `00` | Configuration | Path macros; one file only |
-| `01` | Phase 0 — Key generation | Anonymization crosswalk |
-| `02` | Phase 0 — Inventario | One file per dataset; all run in parallel |
-| `07–11` | Phase 1 — Anonymization | One file per dataset |
-| `12–16` | Phase 3 — Cleaning | One file per dataset (TBD) |
-| `17–18` | Phase 4 — Harmonization | IDs and periods (TBD) |
-| `19` | Phase 5 — Panel | Master panel construction (TBD) |
-| `20` | Phase 6 — QC | Quality control report (TBD) |
-| `21` | Phase 7 — Sample | Stratified sample (TBD) |
-
-> Exploration scripts (`EX_*`) are not numbered — they are free-form and personal to each RA.
+| `01` | Phase 1 — Key generation | Anonymization crosswalk |
+| `02` | Phase 1 — Inventario | One file per dataset; all run in parallel |
+| `03` | Phase 1 — Master Personas PII | Compile unique persons with identifiers |
+| `04` | Phase 2 — Master Personas Anon | Anonymized person dataset + key variables |
+| `07–11` | Phase 5 — Anonymization | One file per dataset |
+| `12–16` | Phase 6 — Cleaning | One file per dataset (TBD) |
+| `17–18` | Phase 7 — Harmonization | IDs and periods (TBD) |
+| `19` | Phase 8 — Panel | Master panel construction (TBD) |
+| `20` | Phase 9 — QC | Quality control report (TBD) |
+| `21` | Phase 10 — Sample | Stratified sample (TBD) |
 
 ---
 
@@ -274,4 +242,4 @@ Scripts within the same processing phase share the same two-digit prefix. The ex
 
 [x] Research Director approved: 2026-04-13
 
-*Última actualización: 2026-04-14 — Reflects actual do-file structure; adds CSV-only rule, inventario requirements (unique key identification), and do-file numbering convention*
+*Última actualización: 2026-04-17 — Added PI Hernando Bayona and Data Scientist Mauricio Hernandez; updated do-file numbering to reflect new phase structure (Master Personas PII, Master Personas Anon, Dictionary, Relational Design)*
