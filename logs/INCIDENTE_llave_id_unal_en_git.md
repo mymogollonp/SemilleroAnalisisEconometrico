@@ -1,6 +1,6 @@
 # ⚠ INCIDENTE CRÍTICO — Llave de anonimización versionada en GitHub
 
-**Estado:** ABIERTO. El archivo se eliminó de la versión actual, pero **sigue en el historial de Git**.
+**Estado:** EN CIERRE. El historial de Git ya se purgó (2026-11-05). Pendiente: confirmación de GitHub Support (caché), causa exacta y decisión sobre la sal.
 **Detectado:** 2026-11-03 · **Registrado:** 2026-11-04
 **Responsable de resolverlo:** Jeronimo Jimenez (administrador del repositorio), con Monica Mogollon
 **Prioridad:** máxima. Debe resolverse **antes de dar acceso a GitHub a cualquier RA nuevo**.
@@ -28,24 +28,28 @@ Con esta llave, cualquier base "anónima" del proyecto puede reidentificarse peg
 
 - [x] 2026-11-04: se eliminó el archivo de la versión actual de `BorradoresCodigo` (`git rm`) y se borró la copia local dentro del repositorio
 - La copia oficial de la llave en `DatosArmonizados/keys/` (Drive) **no se tocó**
+- [x] 2026-11-05 — **Visibilidad:** el repositorio es **público**, así que la llave se trata como expuesta. Además, la sal del hash está escrita en scripts versionados en todas las ramas. Se informó a Monica (Jeronimo)
+- [x] 2026-11-05 — **`.gitignore` corregido** en `BorradoresCodigo` (excluye formatos de datos, `__pycache__/` y `.Rhistory`) y se sacaron del índice `.Rhistory` y `__pycache__` (Jeronimo)
+- [x] 2026-11-05 — **Revisión del historial:** se revisaron los nombres de todos los archivos de todas las ramas (sin abrir contenidos). La llave era el **único** archivo de datos versionado; solo aparecían además `.Rhistory` y `__pycache__` (Jeronimo)
+- [x] 2026-11-05 — **Aviso previo** a Nicolas y Monica antes de reescribir el historial (Jeronimo)
+- [x] 2026-11-05 — **Purga del historial** en un clon mirror nuevo:
+  ```bash
+  git filter-repo --refs be11291~1..BorradoresCodigo \
+      --path 1_LimpiezaDatos/LLAVE_ID_UNAL_FCE.csv --invert-paths
+  git push --force <url> BorradoresCodigo
+  ```
+  Se limitó a `be11291~1..BorradoresCodigo` porque un `filter-repo` sobre todo el repositorio quita las firmas de GitHub de los commits hechos desde la web y cambia los hashes de **todas** las ramas. Así, solo se reescribió `BorradoresCodigo` (`8eac5e7` → `20668ec`); `main`, `Proyectos2026-2S` y las ramas `ra/*` no cambiaron (Jeronimo)
+- [x] 2026-11-05 — **Verificación en GitHub:** `git log --all -- 1_LimpiezaDatos/LLAVE_ID_UNAL_FCE.csv` vacío en un clon nuevo; el árbol de la punta de `BorradoresCodigo` es idéntico al de antes de la purga (`df487cc`). Clon local de Jeronimo borrado y vuelto a clonar; copia del mirror borrada (Jeronimo)
+- [x] 2026-11-05 — **Solicitud a GitHub Support** para eliminar las vistas en caché del commit `be11291` (0 pull requests, 0 forks). Ticket: ____ (Jeronimo)
 
-## Lo que falta (crítico)
+## Lo que falta
 
-1. **Verificar la visibilidad del repositorio** en GitHub (público o privado) y quién tiene o tuvo acceso.
-   - Si fue **público** en algún momento: tratar la llave como expuesta y evaluar con los PI regenerar `id_unal` con una sal nueva para todas las bases.
-2. **Purgar el archivo de todo el historial**:
-   ```bash
-   # en un clon nuevo (mirror) del repositorio
-   git filter-repo --path 1_LimpiezaDatos/LLAVE_ID_UNAL_FCE.csv --invert-paths
-   git push --force --all
-   git push --force --tags
-   ```
-   (Alternativa: BFG Repo-Cleaner con `--delete-files LLAVE_ID_UNAL_FCE.csv`.)
-3. **Antes del force-push**, avisar a todos los que tengan clones. Después, **todos deben borrar su clon y volver a clonar**: un clon viejo puede volver a subir el archivo. Recordar el incidente del 2026-05-08, cuando un force-push borró commits de los RAs; coordinar con cuidado.
-4. **Pedir a GitHub Support** que elimine las vistas en caché del commit `be11291` y de los pull requests que lo referencien, si existen.
-5. **Corregir `.gitignore`** en todas las ramas para excluir `*.csv`, `*.xlsx`, `*.xls`, `*.dta`, `*.parquet`, `*.zip`, `*.rar`, `__pycache__/` y `.Rhistory`.
-6. **Revisar el resto del historial** por otros datos versionados (`git log --all --stat` filtrando por extensiones de datos).
-7. **Cerrar el incidente** en este archivo: fecha, acciones tomadas y quién lo verificó.
+1. **Confirmación de GitHub Support**: verificar que el commit `be11291` ya no se pueda ver por su hash.
+2. **Decisión de los PI** sobre regenerar `id_unal` con una sal nueva, guardada fuera de GitHub (el repositorio es público y la sal está en los scripts).
+3. **Causa exacta** (Nicolas): qué comando y desde qué carpeta se subió el archivo.
+4. **Clones viejos de `BorradoresCodigo`** (Nicolas, Monica, RAs de 2026-1S): borrarlos y volver a clonar; nadie debe hacer push desde un clon anterior al 2026-11-05.
+5. **`.gitignore` nuevo en `main`** (entra por pull request).
+6. **Cerrar el incidente** en este archivo: fecha y quién lo verificó.
 
 ---
 

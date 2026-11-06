@@ -13,6 +13,7 @@
 - Si usas un agente de código, debe trabajar **solo dentro de la carpeta del código del proyecto**: nunca debe buscar ni explorar otras carpetas del computador, ni **leer datos** sin autorización manual de la PI/CoPI. Ver [CLAUDE.md](../../CLAUDE.md).
 - En la reunión de arranque mencionaste que actualizar los datos es fácil con Claude. Si usas agentes para el pipeline, el agente **escribe el código** y **tú lo ejecutas** sobre los datos. El agente no lee los datos.
 - **Tarea de administrador:** asegurar que `CLAUDE.md` y estas reglas estén en `main`, `BorradoresCodigo`, `Proyectos2026-2S` y todas las ramas de los RAs.
+  - *Avance 2026-11-05:* ya están en `BorradoresCodigo`, `Proyectos2026-2S` y las ramas `ra/*`. **Falta `main`** (entra con el `.gitignore` nuevo vía pull request).
 
 ---
 
@@ -43,13 +44,21 @@
 > **Antes de dar acceso a GitHub a los nuevos RAs**: el archivo `1_LimpiezaDatos/LLAVE_ID_UNAL_FCE.csv` (correo ↔ `id_unal`, unas 148.000 filas) fue subido a `BorradoresCodigo` en el commit `be11291` (2026-06-01). Está en el historial de Git.
 
 - `[ ]` **Revisar el incidente** en [logs/INCIDENTE_llave_id_unal_en_git.md](../../logs/INCIDENTE_llave_id_unal_en_git.md) junto con Nicolas: completar los pasos pendientes y cerrar el incidente cuando el historial esté limpio y verificado. El archivo ya se eliminó de la versión actual (commit `3c32942`)
-- `[ ]` Coordinar con Monica y **eliminar la llave del historial** (`git filter-repo --path 1_LimpiezaDatos/LLAVE_ID_UNAL_FCE.csv --invert-paths`, o BFG) y hacer force-push **avisando antes** a todos los que tengan clones
-- `[ ]` Verificar si el repositorio es público o privado. Si fue público, informar a Monica para evaluar regenerar `id_unal` con otra sal
-- `[ ]` Llevar a `BorradoresCodigo` el `.gitignore` nuevo, que ya está en `Proyectos2026-2S` y excluye datos, `__pycache__/` y `.Rhistory` (por ejemplo, `git checkout Proyectos2026-2S -- .gitignore CLAUDE.md`)
-- `[ ]` En `BorradoresCodigo`, quitar del índice los archivos ya versionados que el `.gitignore` excluye: `.Rhistory`, `1_LimpiezaDatos/.Rhistory` y los tres `__pycache__/config.cpython-313.pyc` (`git rm --cached`; quedan en disco)
-- `[ ]` Hacer push del commit local `3c32942` (eliminación de la llave de la versión actual) a `origin/BorradoresCodigo`, si Monica no lo ha hecho
-- `[ ]` Crear la etiqueta `solicitud-datos` en GitHub, **dar acceso a los nuevos RAs** y crear sus ramas desde `Proyectos2026-2S` (`ra/jmoreno`, `ra/dtovar`, `ra/jbermudez`, `ra/mcarrillo`, `ra/njimenez`, `ra/jjimenez`)
+  - *En curso:* historial purgado y verificado (2026-11-05). Falta: registrar la causa exacta con Nicolas y la confirmación de GitHub Support
+- `[x]` Coordinar con Monica y **eliminar la llave del historial** (`git filter-repo --path 1_LimpiezaDatos/LLAVE_ID_UNAL_FCE.csv --invert-paths`, o BFG) y hacer force-push **avisando antes** a todos los que tengan clones
+  - *Hecho 2026-11-05:* `git filter-repo --refs be11291~1..BorradoresCodigo` (solo se reescribió `BorradoresCodigo`, nueva punta `20668ec`; las demás ramas no cambiaron). Aviso previo a Nicolas y Monica
+- `[x]` Verificar si el repositorio es público o privado. Si fue público, informar a Monica para evaluar regenerar `id_unal` con otra sal
+  - *2026-11-05:* el repositorio es **público**. Se informó a Monica, junto con que la sal está escrita en varios scripts. Pendiente: decisión de los PI sobre regenerar `id_unal`
+- `[x]` Llevar a `BorradoresCodigo` el `.gitignore` nuevo, que ya está en `Proyectos2026-2S` y excluye datos, `__pycache__/` y `.Rhistory` (por ejemplo, `git checkout Proyectos2026-2S -- .gitignore CLAUDE.md`)
+- `[x]` En `BorradoresCodigo`, quitar del índice los archivos ya versionados que el `.gitignore` excluye: `.Rhistory`, `1_LimpiezaDatos/.Rhistory` y los tres `__pycache__/config.cpython-313.pyc` (`git rm --cached`; quedan en disco)
+  - *Hecho 2026-11-05* junto con el punto anterior (hoy commit `20668ec` tras la purga)
+- `[x]` Hacer push del commit local `3c32942` (eliminación de la llave de la versión actual) a `origin/BorradoresCodigo`, si Monica no lo ha hecho
+  - Ya lo había subido Monica
+- `[x]` Crear la etiqueta `solicitud-datos` en GitHub (2026-11-06)
+- `[ ]` **Dar acceso a los nuevos RAs** y crear sus ramas desde `Proyectos2026-2S` (`ra/jmoreno`, `ra/dtovar`, `ra/jbermudez`, `ra/mcarrillo`, `ra/njimenez`, `ra/jjimenez`)
+  - Ya existen `ra/jbermudez`, `ra/jmoreno`, `ra/njimenez` y `ra/jjimenez`. Faltan `ra/dtovar` y `ra/mcarrillo`. **Bloqueo:** dar acceso requiere rol Admin (la cuenta `jerjimenezca` tiene Write)
 - `[ ]` Configurar la protección de `main` y `Proyectos2026-2S`: sin push directo y con pull request revisado
+  - **Bloqueo:** requiere rol Admin; solicitado a Monica
 
 ## Semana 2 (9 – 13 nov) — Auditoría 2026-1S y publicación de bases
 
@@ -104,7 +113,7 @@
 
 | Semana | Avances | Problemas o bloqueos | Horas |
 |---|---|---|---|
-| S1 | | | |
+| S1 | Visibilidad verificada (público) e informada; `.gitignore` nuevo y `CLAUDE.md` en `BorradoresCodigo`; `.Rhistory` y `__pycache__` fuera del índice; llave purgada del historial (solo `BorradoresCodigo`) y verificada; solicitud a GitHub Support para borrar caché; etiqueta `solicitud-datos` | Falta rol Admin para proteger ramas y dar acceso a RAs; decisión de PI sobre regenerar `id_unal` (sal expuesta); causa exacta del incidente pendiente con Nicolas |5|
 | S2 | | | |
 | S3 | | | |
 | S4 | | | |
