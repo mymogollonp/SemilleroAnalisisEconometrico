@@ -30,12 +30,12 @@ Documentar **todos los cambios en planes de estudio** de la universidad observab
 
 ## Semana 1 (3 – 6 nov) — Arranque
 
-- `[ ]` Firmar el acuerdo de confidencialidad; pedir acceso a GitHub y Drive
-- `[ ]` Clonar el repo, crear la rama `ra/jmoreno` y el archivo `00_config`; primer commit y push
-- `[ ]` Leer la [Introducción](../INTRODUCCION_2026-2S.md) y la [Guía de RAs](../README.md)
-- `[ ]` Leer **Arteaga (2018)**, *J. Public Economics* 157: 212–225, y resumirlo en `Literatura/notas_lectura.md`: reforma, datos, método, resultados
+- `[x]` Firmar el acuerdo de confidencialidad; pedir acceso a GitHub y Drive
+- `[x]` Clonar el repo, crear la rama `ra/jmoreno` y el archivo `00_config`; primer commit y push
+- `[x]` Leer la [Introducción](../INTRODUCCION_2026-2S.md) y la [Guía de RAs](../README.md)
+- `[-]` Leer **Arteaga (2018)**, *J. Public Economics* 157: 212–225, y resumirlo en `Literatura/notas_lectura.md`: reforma, datos, método, resultados
 - `[ ]` Revisar con Monica el documento de proyecto ya formulado (revisión de literatura de la convocatoria) y anotar preguntas
-- `[ ]` Explorar `BASE_MATRICULADOS.csv`: N por período; valores de `cod_plan`, `cod_programa`, `facultad` y `tipo_nivel`
+- `[-]` Explorar `BASE_MATRICULADOS.csv`: N por período; valores de `cod_plan`, `cod_programa`, `facultad` y `tipo_nivel`
 
 ## Semana 2 (9 – 13 nov) — Identificar cambios en los datos
 
