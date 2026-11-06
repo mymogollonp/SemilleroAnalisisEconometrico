@@ -21,10 +21,6 @@ if (usuario == "NicolasC") {
   dir_datos <- "C:/Users/nicoj/Desktop/semillerop/datos"
   dir_code  <- "C:/Users/nicoj/Desktop/semillerop/SemilleroAnalisisEconometrico"
   
-} else if (usuario == "mcc") {
-  dir_datos <- "/Users/mcc/Library/CloudStorage/GoogleDrive-mcarrilloca@unal.edu.co/Mi unidad/SemilleroMicroeconometriaProyectos"
-  dir_code  <- "/Users/mcc/Documents/GitHub/SemilleroAnalisisEconometrico"  
-  
 } else {
   stop("Usuario no configurado. Agrega tu ruta en 00_configuracion.R")
 }
