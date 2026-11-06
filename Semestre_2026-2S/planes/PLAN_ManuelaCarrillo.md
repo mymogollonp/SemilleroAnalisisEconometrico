@@ -29,11 +29,11 @@ Describir **cómo se distribuyen los estudiantes por modalidad de trabajo de gra
 
 ## Semana 1 (3 – 6 nov) — Arranque y solicitud de datos
 
-- `[ ]` Firmar el acuerdo de confidencialidad; pedir acceso a GitHub y Drive
-- `[ ]` Clonar el repo, crear la rama `ra/mcarrillo` y el archivo `00_config`; primer commit y push
-- `[ ]` Leer la [Introducción](../INTRODUCCION_2026-2S.md) y la [Guía de RAs](../README.md)
-- `[ ]` **Solicitar a Jeronimo** (issue `solicitud-datos`) la variable de **trabajo de grado o modalidad** de los datos armonizados de Egresados, anonimizada por `id_unal`. Nicolas confirmó que existe en los datos armonizados pero no en las bases finales
-- `[ ]` Buscar literatura sobre modalidades de grado, tesis de pregrado y resultados (posgrado, mercado laboral) y empezar `Literatura/notas_lectura.md`
+- `[x]` Firmar el acuerdo de confidencialidad; pedir acceso a GitHub y Drive
+- `[x]` Clonar el repo, crear la rama `ra/mcarrillo` y el archivo `00_config`; primer commit y push
+- `[x]` Leer la [Introducción](../INTRODUCCION_2026-2S.md) y la [Guía de RAs](../README.md)
+- `[x]` **Solicitar a Jeronimo** (issue `solicitud-datos`) la variable de **trabajo de grado o modalidad** de los datos armonizados de Egresados, anonimizada por `id_unal`. Nicolas confirmó que existe en los datos armonizados pero no en las bases finales
+- `[-]` Buscar literatura sobre modalidades de grado, tesis de pregrado y resultados (posgrado, mercado laboral) y empezar `Literatura/notas_lectura.md`
 
 ## Semana 2 (9 – 13 nov) — Explorar las fuentes de modalidad
 
