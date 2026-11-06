@@ -32,11 +32,11 @@ Julian además **lidera la estandarización de los indicadores de composición**
 
 ## Semana 1 (3 – 6 nov) — Arranque
 
-- `[ ]` Firmar el acuerdo de confidencialidad; pedir acceso a GitHub y Drive
-- `[ ]` Clonar el repo, crear la rama `ra/jbermudez` y el archivo `00_config`; primer commit y push
-- `[ ]` Leer la [Introducción](../INTRODUCCION_2026-2S.md) y la [Guía de RAs](../README.md)
-- `[ ]` Leer el artículo del profesor Hernando Bayona (pedirlo a Monica) y resumirlo en `Literatura/notas_lectura.md`
-- `[ ]` Reunión con Dilan para acordar la división del trabajo y el período de corte antes/después
+- `[x]` Firmar el acuerdo de confidencialidad; pedir acceso a GitHub y Drive
+- `[x]` Clonar el repo, crear la rama `ra/jbermudez` y el archivo `00_config`; primer commit y push
+- `[x]` Leer la [Introducción](../INTRODUCCION_2026-2S.md) y la [Guía de RAs](../README.md)
+- `[x]` Leer el artículo del profesor Hernando Bayona (pedirlo a Monica) y resumirlo en `Literatura/notas_lectura.md`
+- `[x]` Reunión con Dilan para acordar la división del trabajo y el período de corte antes/después
 
 ## Semana 2 (9 – 13 nov) — Cohortes de ingreso y variables
 
@@ -79,7 +79,7 @@ Julian además **lidera la estandarización de los indicadores de composición**
 
 | Semana | Avances | Problemas o bloqueos | Horas |
 |---|---|---|---|
-| S1 | | | |
+| S1 |Configuración completa (rama, 00_config), resumen de la propuesta de Bayona con Dilan, reunión con Dilan: división del trabajo y corte 2013-I/2013-II|Ninguno| |
 | S2 | | | |
 | S3 | | | |
 | S4 | | | |
